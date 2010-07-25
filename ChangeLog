@@ -1,0 +1,36 @@
+2010-05-20  Mariusz Adamski <mariusz.adamski@gmail.com>
+	* src/main.c: Code responsible for loading desktop files moved out of
+	the ttb_base_init.
+	* src/ttb-base.c: Ditto.
+
+	* src/ttb-base.c, src/ttb-base.h: New methods: set_entries_list,
+	add_entry, set_entry_name, set_entry_exec, set_entry_icon, clone,
+	load_from_dir, and accompanying convenience functions.
+
+	* src/ttb-ui.c, src/ttb-ui.h: New method: rebuild, and convenience
+	function.
+
+	* src/ui-gtk-prefs.c: New private fields: base_clone, ui,
+	apply_button; now gets TTBUI object instead of TTBBase; callbacks.
+
+	* src/ui-gtk.c, src/ui-gtk.h: Added private filed: window; new
+	method: rebuild.
+
+2010-05-03  Mariusz Adamski <mariusz.adamski@gmail.com>
+	* src/glade/prefs.ui: New file.
+	* src/ui-gtk-prefs.c, src/ui-gtk-prefs.h: New files.
+	* src/Makefile.am: Ditto; added rule for ttb-paths.h.
+	* configure.ac: Added dependency on gmodule.
+	* src/ui-gtk.c, src/ui-gtk.h: Added a prefs button.
+
+2010-04-12  Mariusz Adamski <mariusz.adamski@gmail.com>
+	Initial import
+
+	-----
+
+        Copyright (C) 2010 Mariusz Adamski
+
+	Copying and distribution of this file, with or without
+	modification, are permitted provided the copyright notice
+	and this notice are preserved.
+

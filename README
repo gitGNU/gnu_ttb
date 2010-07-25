@@ -1,0 +1,40 @@
+TabletToolbox README -- Important introductory notes.
+Copyright (C) 2010 Mariusz Adamski
+See the end for copying conditions.
+
+TabletToolbox (ttb) is a toolbox application for tablet PCs.
+TabletToolbox is licensed under the terms of the GNU GPL v2 included in the
+file COPYING.
+
+Requirements
+------------
+
+You need:
+	glib
+	gobject-2.0
+	gtk+-2.0
+
+Using TabletToolbox
+-------------------
+
+TabletToolbox reads .desktop files located in ~/.local/share/applications/ttb
+and presents the user with a list of applications to launch. For now, the only
+way to add applications to TabletToolbox is to manually copy those files
+there.
+
+You can use your desktop environments settings to setup a hot-key to run
+TabletToolbox when you e.g. press a `Toolbox' button on a cover of your tablet
+PC. Alternatively, I recommend xbindkeys for that job (see
+http://www.nongnu.org/xbindkeys for more details).
+
+Technical note
+--------------
+
+Please note that parsing .desktop entries' `Exec' key isn't exactly
+freedesktop.org compliant. It works well with all the .desktop files I tested,
+but if you run into problems, please let me know.
+
+----------------------------------------------------------------------
+Copying and distribution of this file, with or without modification,
+are permitted in any medium without royalty provided the copyright
+notice and this notice are preserved.
