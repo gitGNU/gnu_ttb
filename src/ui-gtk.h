@@ -22,7 +22,6 @@
 #define UI_GTK_H
 
 #include "ttb-ui.h"
-#include "ui-gtk-prefs.h"
 
 #define UI_TYPE_GTK            (ui_gtk_get_type())
 #define UI_GTK(obj)            (G_TYPE_CHECK_INSTANCE_CAST((obj), \
@@ -47,7 +46,6 @@ struct _UIGtk
 	TTBUI parent_instance;
 
 	/* instance members */
-	UIGtkPrefs *prefs;
 	UIGtkPrivate *priv;
 };
 

@@ -21,6 +21,7 @@
 #include "ui-gtk.h"
 #include <gtk/gtk.h>
 #include <string.h>
+#include "ttb-paths.h"
 
 #define UI_GTK_GET_PRIVATE(obj) (G_TYPE_INSTANCE_GET_PRIVATE((obj), \
                                  UI_TYPE_GTK, UIGtkPrivate))
@@ -37,7 +38,6 @@ ui_gtk_init(UIGtk *self)
 {
 	self->priv = UI_GTK_GET_PRIVATE(self);
 	self->priv->window = NULL;
-	self->prefs = NULL;
 }
 
 static void
@@ -50,10 +50,6 @@ ui_gtk_dispose(GObject *gobject)
 static void
 ui_gtk_finalize(GObject *gobject)
 {
-	UIGtk *self = UI_GTK(gobject);
-	if (self->prefs)
-		g_object_unref(self->prefs);
-
 	/* Chain up to the parent class */
 	G_OBJECT_CLASS(ui_gtk_parent_class)->finalize(gobject);
 }
@@ -68,12 +64,7 @@ cb_button_clicked(GtkWidget *widget, gpointer data)
 static void
 cb_add_button_clicked(GtkWidget *widget, gpointer data)
 {
-	UIGtk *self = UI_GTK(data);
-	if (!self->prefs) {
-		self->prefs = g_object_new(UI_TYPE_GTK_PREFS, "UI", self,
-		                           NULL);
-	}
-	ui_gtk_prefs_show_prefs(self->prefs);
+	ttb_base_execute(bindir "ttb-prefs");
 }
 
 static void
@@ -105,6 +96,7 @@ ui_gtk_rebuild(TTBUI *self)
 		                                 GTK_ICON_SIZE_LARGE_TOOLBAR);
 			gtk_button_set_image(GTK_BUTTON(button), icon);
 		}
+		gtk_widget_set_tooltip_text(button, item->name);
 		gtk_box_pack_start(GTK_BOX(tbox), button, TRUE, TRUE, 0);
 		g_signal_connect(button, "clicked",
 		                 G_CALLBACK(cb_button_clicked),
@@ -118,6 +110,7 @@ ui_gtk_rebuild(TTBUI *self)
 	gtk_button_set_image(GTK_BUTTON(button),
 	                     gtk_image_new_from_stock(GTK_STOCK_PREFERENCES,
 	                                              GTK_ICON_SIZE_BUTTON));
+	gtk_widget_set_tooltip_text(button, "Preferences");
 	g_signal_connect(button, "clicked", G_CALLBACK(cb_add_button_clicked),
 	                 self);
 	gtk_box_pack_start(GTK_BOX(hbox), button, TRUE, FALSE, 0);

@@ -20,7 +20,7 @@
 
 #include "ui-gtk-prefs.h"
 #include <gtk/gtk.h>
-#include "ttb-ui.h"
+#include "ttb-base.h"
 #include "ttb-paths.h"
 
 #define UI_FILE datadir "glade/prefs.ui"
@@ -34,7 +34,6 @@ struct _UIGtkPrefsPrivate
 {
 	TTBBase *base;
 	TTBBase *base_clone;
-	TTBUI *ui;
 	GtkWidget *window;
 	GtkWidget *apply_button;
 	GtkListStore *list;
@@ -42,7 +41,7 @@ struct _UIGtkPrefsPrivate
 
 enum {
 	UI_GTK_PREFS_PROP_0,
-	UI_GTK_PREFS_PROP_UI
+	UI_GTK_PREFS_PROP_BASE
 };
 
 enum {
@@ -61,9 +60,8 @@ ui_gtk_prefs_set_property(GObject      *object,
 	UIGtkPrefsPrivate *priv = self->priv;
 
 	switch (property_id) {
-	case UI_GTK_PREFS_PROP_UI:
-		priv->ui = TTB_UI(g_value_get_object(value));
-		priv->base = ttb_ui_get_base(priv->ui);
+	case UI_GTK_PREFS_PROP_BASE:
+		priv->base = TTB_BASE(g_value_get_object(value));
 		priv->base_clone = ttb_base_clone(priv->base);
 		break;
 	default:
@@ -211,8 +209,6 @@ cb_apply_clicked(GtkWidget *widget, gpointer data)
 	GSList *list = ttb_base_get_entries_list(priv->base_clone);
 	ttb_base_set_entries_list(priv->base, list);
 	gtk_widget_set_sensitive(widget, FALSE);
-
-	ttb_ui_rebuild(priv->ui);
 }
 
 G_MODULE_EXPORT void
@@ -250,10 +246,10 @@ ui_gtk_prefs_class_init(UIGtkPrefsClass *klass)
 	gobject_class->finalize     = ui_gtk_prefs_finalize;
 	gobject_class->set_property = ui_gtk_prefs_set_property;
 
-	pspec = g_param_spec_object("UI", "UI", "UI", TTB_TYPE_UI,
-                                    G_PARAM_CONSTRUCT_ONLY
-                                    | G_PARAM_WRITABLE);
-	g_object_class_install_property(gobject_class, UI_GTK_PREFS_PROP_UI,
+	pspec = g_param_spec_object("base", "base", "base", TTB_TYPE_BASE,
+	                            G_PARAM_CONSTRUCT_ONLY
+	                            | G_PARAM_WRITABLE);
+	g_object_class_install_property(gobject_class, UI_GTK_PREFS_PROP_BASE,
 	                                pspec);
 
 	klass->show_prefs = ui_gtk_prefs_show_prefs;

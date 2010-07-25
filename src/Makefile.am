@@ -15,7 +15,7 @@
 ## You should have received a copy of the GNU General Public License
 ## along with TabletToolbox. If not, see <http://www.gnu.org/licenses/>.
 
-bin_PROGRAMS = ttb
+bin_PROGRAMS = ttb ttb-prefs
 
 nobase_dist_pkgdata_DATA = glade/prefs.ui
 
@@ -29,7 +29,13 @@ ttb_SOURCES = main.c \
 		ttb-ui.c \
 		ttb-ui.h \
 		ui-gtk.c \
-		ui-gtk.h \
+		ui-gtk.h
+
+ttb_prefs_LDADD = $(deps_LIBS)
+
+ttb_prefs_SOURCES = gtk-prefs-main.c \
+		ttb-base.c \
+		ttb-base.h \
 		ui-gtk-prefs.c \
 		ui-gtk-prefs.h
 
@@ -44,6 +50,7 @@ ttb-paths.h: Makefile
 	echo '#define TTB_PATHS_H'; \
 	echo ''; \
 	echo '#define datadir "$(pkgdatadir)/"'; \
+	echo '#define bindir "$(bindir)/"'; \
 	echo '#endif /* TTB_PATHS_H */' \
 	) >$@
 

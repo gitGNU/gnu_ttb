@@ -1,3 +1,11 @@
+2010-07-25  Mariusz Adamski <mariusz.adamski@gmail.com>
+	* src/gtk-prefs-main.c: New file.
+	* src/Makefile.am: Modularization; prefs gets its own executable.
+	* src/ui-gtk.c, src/ui-gtk.h: Ditto.
+	* src/ui-gtk-prefs.c: Ditto.
+
+	* src/ui-gtk.c: Added tooltips.
+
 2010-05-20  Mariusz Adamski <mariusz.adamski@gmail.com>
 	* src/main.c: Code responsible for loading desktop files moved out of
 	the ttb_base_init.
