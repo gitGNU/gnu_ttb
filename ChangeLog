@@ -1,4 +1,7 @@
 2010-07-25  Mariusz Adamski <mariusz.adamski@gmail.com>
+	* src/ui-gtk.c: Icons for missing images.
+
+2010-07-25  Mariusz Adamski <mariusz.adamski@gmail.com>
 	* src/gtk-prefs-main.c: New file.
 	* src/Makefile.am: Modularization; prefs gets its own executable.
 	* src/ui-gtk.c, src/ui-gtk.h: Ditto.

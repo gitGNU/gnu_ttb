@@ -90,12 +90,15 @@ ui_gtk_rebuild(TTBUI *self)
 	while (list) {
 		DesktopItem *item = list->data;
 		GtkWidget *button = gtk_button_new_with_label(item->name);
+		GtkWidget *ic;
 		if ((item->icon) && (strlen(item->icon) != 0)) {
-			GtkWidget *icon;
-			icon = gtk_image_new_from_icon_name(item->icon,
+			ic = gtk_image_new_from_icon_name(item->icon,
 		                                 GTK_ICON_SIZE_LARGE_TOOLBAR);
-			gtk_button_set_image(GTK_BUTTON(button), icon);
+		} else {
+			ic = gtk_image_new_from_stock(GTK_STOCK_MISSING_IMAGE,
+			                              GTK_ICON_SIZE_BUTTON);		
 		}
+		gtk_button_set_image(GTK_BUTTON(button), ic);
 		gtk_widget_set_tooltip_text(button, item->name);
 		gtk_box_pack_start(GTK_BOX(tbox), button, TRUE, TRUE, 0);
 		g_signal_connect(button, "clicked",
