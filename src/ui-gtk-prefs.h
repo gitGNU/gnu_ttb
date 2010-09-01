@@ -55,6 +55,7 @@ struct _UIGtkPrefsClass
 
 	/* class members */
 	void (*show_prefs)(UIGtkPrefs *self);
+	void (*set_pid_of_ttb)(UIGtkPrefs *self, int pid);
 };
 
 /* used by UI_TYPE_GTK_PREFS */
@@ -65,6 +66,8 @@ GType ui_gtk_prefs_get_type(void);
  */
 
 void ui_gtk_prefs_show_prefs(UIGtkPrefs *self);
+
+void ui_gtk_prefs_set_pid_of_ttb(UIGtkPrefs *self, int pid);
 
 G_BEGIN_DECLS
 

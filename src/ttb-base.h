@@ -58,13 +58,17 @@ struct _TTBBaseClass
 	GSList* (*get_entries_list)(TTBBase *self);
 	void (*set_entries_list)(TTBBase *self, GSList *list);
 	void (*add_entry)(TTBBase *self, gchar *name, gchar *exec,
-	                  gchar *icon);
+	                  gchar *icon); /* virtual */
+	void (*remove_entry)(TTBBase *self, gint index); /* virtual */
 	void (*set_entry_name)(TTBBase *self, gint index, gchar *name);
 	void (*set_entry_exec)(TTBBase *self, gint index, gchar *exec);
 	void (*set_entry_icon)(TTBBase *self, gint index, gchar *exec);
 	TTBBase* (*clone)(TTBBase *self);
-	void (*load_from_dir)(TTBBase *self, gchar *dirname);
+	void (*load_from_dir)(TTBBase *self, gchar *dirname); /* virtual */
 	void (*execute)(gchar *exec);
+	/* protected */
+	gboolean (*load_keys_from_file)(TTBBase *self, gchar *fname,
+	                                GKeyFile *kfile);
 };
 
 struct _DesktopItem
@@ -86,6 +90,8 @@ GSList* ttb_base_get_entries_list(TTBBase *self);
 void ttb_base_set_entries_list(TTBBase *self, GSList *list);
 
 void ttb_base_add_entry(TTBBase *self, gchar *name, gchar *exec, gchar *icon);
+
+void ttb_base_remove_entry(TTBBase *self, gint index);
 
 void ttb_base_set_entry_name(TTBBase *self, gint index, gchar *name);
 

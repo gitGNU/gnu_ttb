@@ -36,6 +36,8 @@ ttb_prefs_LDADD = $(deps_LIBS)
 ttb_prefs_SOURCES = gtk-prefs-main.c \
 		ttb-base.c \
 		ttb-base.h \
+		ttb-fbase.h \
+		ttb-fbase.c \
 		ui-gtk-prefs.c \
 		ui-gtk-prefs.h
 

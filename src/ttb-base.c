@@ -115,16 +115,26 @@ ttb_base_load_keys_from_file(TTBBase *self, gchar *fname, GKeyFile *kfile)
 	return TRUE;
 }
 
+
 void
 ttb_base_load_from_dir(TTBBase *self, gchar *dirname)
 {
+	TTBBaseClass *klass = TTB_BASE_GET_CLASS(self);
+	klass->load_from_dir(self, dirname);
+}
+
+static void
+load_from_dir(TTBBase *self, gchar *dirname)
+{
+	TTBBaseClass *klass = TTB_BASE_GET_CLASS(self);
 	GDir *dir = g_dir_open(dirname, 0, NULL);
 	GKeyFile *kfile = g_key_file_new();
 	const gchar *name;
 	TTBBasePrivate *priv = self->priv;
+
 	while (name = g_dir_read_name(dir)) {
 		gchar *dfname = g_build_filename(dirname, name, NULL);
-		ttb_base_load_keys_from_file(self, dfname, kfile);
+		klass->load_keys_from_file(self, dfname, kfile);	
 		g_free(dfname);
 	}
 	g_key_file_free(kfile);
@@ -205,6 +215,13 @@ ttb_base_set_entries_list(TTBBase *self, GSList *list)
 void
 ttb_base_add_entry(TTBBase *self, gchar *name, gchar *exec, gchar *icon)
 {
+	TTBBaseClass *klass = TTB_BASE_GET_CLASS(self);
+	klass->add_entry(self, name, exec, icon);
+}
+
+static void
+add_entry(TTBBase *self, gchar *name, gchar *exec, gchar *icon)
+{
 	g_return_if_fail(TTB_IS_BASE(self));
 
 	TTBBasePrivate *priv = self->priv;
@@ -213,6 +230,31 @@ ttb_base_add_entry(TTBBase *self, gchar *name, gchar *exec, gchar *icon)
 	item->exec = g_strdup(exec);
 	item->icon = g_strdup(icon);
 	priv->list = g_slist_append(priv->list, item);
+}
+
+void
+ttb_base_remove_entry(TTBBase *self, gint index)
+{
+	TTBBaseClass *klass = TTB_BASE_GET_CLASS(self);
+	klass->remove_entry(self, index);
+}
+
+static void
+remove_entry(TTBBase *self, gint index)
+{
+	g_return_if_fail(TTB_IS_BASE(self));
+
+	TTBBasePrivate *priv = self->priv;
+
+	GSList *entry = g_slist_nth(priv->list, index);
+	if (!entry)
+		return;
+	priv->list = g_slist_remove_link(priv->list, entry);
+	DesktopItem *item = entry->data;
+	g_free(item->name);
+	g_free(item->exec);
+	g_free(item->icon);
+	g_free(item);
 }
 
 TTBBase*
@@ -295,15 +337,17 @@ ttb_base_class_init(TTBBaseClass *klass)
 	gobject_class->dispose  = ttb_base_dispose;
 	gobject_class->finalize = ttb_base_finalize;
 
-	klass->get_entries_list = ttb_base_get_entries_list;
-	klass->set_entries_list = ttb_base_set_entries_list;
-	klass->add_entry        = ttb_base_add_entry;
-	klass->set_entry_name   = ttb_base_set_entry_name;
-	klass->set_entry_exec   = ttb_base_set_entry_exec;
-	klass->set_entry_icon   = ttb_base_set_entry_icon;
-	klass->clone            = ttb_base_clone;
-	klass->load_from_dir    = ttb_base_load_from_dir;
-	klass->execute          = ttb_base_execute;
+	klass->get_entries_list    = ttb_base_get_entries_list;
+	klass->set_entries_list    = ttb_base_set_entries_list;
+	klass->add_entry           = add_entry;
+	klass->remove_entry        = remove_entry;
+	klass->set_entry_name      = ttb_base_set_entry_name;
+	klass->set_entry_exec      = ttb_base_set_entry_exec;
+	klass->set_entry_icon      = ttb_base_set_entry_icon;
+	klass->clone               = ttb_base_clone;
+	klass->load_from_dir       = load_from_dir;
+	klass->execute             = ttb_base_execute;
+	klass->load_keys_from_file = ttb_base_load_keys_from_file;
 
 	g_type_class_add_private(klass, sizeof(TTBBasePrivate));
 }

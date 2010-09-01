@@ -37,9 +37,9 @@ enum {
 
 static void
 ttb_ui_set_property(GObject      *object,
-                   guint         property_id,
-                   const GValue *value,
-                   GParamSpec   *pspec)
+                    guint         property_id,
+                    const GValue *value,
+                    GParamSpec   *pspec)
 {
 	TTBUI *self = TTB_UI(object);
 

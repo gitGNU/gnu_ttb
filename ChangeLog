@@ -1,3 +1,19 @@
+2010-09-01  Mariusz Adamski <mariusz.adamski@gmail.com>
+	* src/ttb-fbase.c, src/ttb-fbase.h: New files.
+	* src/Makefile.am: Ditto.
+	* src/gtk-prefs-main.c: Use TTBFBase instead of TTBBase.
+	* src/ttb-base.c (ttb_base_load_from_dir): Made virtual.
+	* src/ttb-base.c (ttb_base_add_entry): Made virtual.
+	* src/ttb-base.c (ttb_base_remove): Made virtual.
+	* src/ttb-base.c (ttb_base_load_keys_from_file): New virtual protected
+	method.
+	* src/ttb-base.h: Ditto.
+	* src/ui-gtk-prefs.c: Removed now obsolete base_clone.
+	* src/ui-gtk-prefs.c (ui_gtk_prefs_set_pid_of_ttb): New method.
+	* src/ui-gtk-prefs.c: Ditto.
+	* src/ui-gtk-prefs.c (cb_remove_clicked, cb_new_clicked): Implemented.
+	* src/ui-gtk.c (add_button_clicked): Passing PID to ttb-prefs.
+
 2010-07-25  Mariusz Adamski <mariusz.adamski@gmail.com>
 	* src/ui-gtk.c: Icons for missing images.
 

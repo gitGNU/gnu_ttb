@@ -21,6 +21,7 @@
 #include "ui-gtk.h"
 #include <gtk/gtk.h>
 #include <string.h>
+#include <unistd.h>
 #include "ttb-paths.h"
 
 #define UI_GTK_GET_PRIVATE(obj) (G_TYPE_INSTANCE_GET_PRIVATE((obj), \
@@ -64,7 +65,12 @@ cb_button_clicked(GtkWidget *widget, gpointer data)
 static void
 cb_add_button_clicked(GtkWidget *widget, gpointer data)
 {
-	ttb_base_execute(bindir "ttb-prefs");
+	/* Not portable */
+	pid_t pid = getpid();
+
+	gchar *exec = g_strdup_printf(bindir "ttb-prefs %d", pid);
+	ttb_base_execute(exec);
+	g_free(exec);
 }
 
 static void

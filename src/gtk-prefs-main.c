@@ -19,7 +19,7 @@
  */
 
 #include <stdio.h>
-#include "ttb-base.h"
+#include "ttb-fbase.h"
 #include "ui-gtk-prefs.h"
 
 int main(int argc, char **argv)
@@ -30,7 +30,7 @@ int main(int argc, char **argv)
 	                                  ".local/share/applications/ttb",
 	                                  NULL);
 	g_mkdir_with_parents(dirname, 0755);
-	TTBBase *base = g_object_new(TTB_TYPE_BASE, NULL);
+	TTBBase *base = g_object_new(TTB_TYPE_FBASE, NULL);
 	ttb_base_load_from_dir(base, dirname);
 	g_free(dirname);
 
@@ -38,9 +38,12 @@ int main(int argc, char **argv)
 
 	UIGtkPrefs *prefs = g_object_new(UI_TYPE_GTK_PREFS, "base", base,
 	                                 NULL);
+	if (argc == 2) {
+		int pid = atoi(argv[1]);
+		ui_gtk_prefs_set_pid_of_ttb(prefs, pid);
+	}
 	ui_gtk_prefs_show_prefs(prefs);
 
-	g_print("This is gtk-prefs\n");
 	gtk_main();
 
 	g_object_unref(prefs);

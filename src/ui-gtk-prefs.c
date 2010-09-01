@@ -20,7 +20,8 @@
 
 #include "ui-gtk-prefs.h"
 #include <gtk/gtk.h>
-#include "ttb-base.h"
+#include <unistd.h>
+#include "ttb-fbase.h"
 #include "ttb-paths.h"
 
 #define UI_FILE datadir "glade/prefs.ui"
@@ -33,10 +34,11 @@ G_DEFINE_TYPE(UIGtkPrefs, ui_gtk_prefs, G_TYPE_OBJECT)
 struct _UIGtkPrefsPrivate
 {
 	TTBBase *base;
-	TTBBase *base_clone;
 	GtkWidget *window;
 	GtkWidget *apply_button;
 	GtkListStore *list;
+	GtkTreeView *treeview;
+	int pid_of_ttb;
 };
 
 enum {
@@ -62,7 +64,6 @@ ui_gtk_prefs_set_property(GObject      *object,
 	switch (property_id) {
 	case UI_GTK_PREFS_PROP_BASE:
 		priv->base = TTB_BASE(g_value_get_object(value));
-		priv->base_clone = ttb_base_clone(priv->base);
 		break;
 	default:
 		G_OBJECT_WARN_INVALID_PROPERTY_ID(object, property_id, pspec);
@@ -75,7 +76,7 @@ ui_gtk_prefs_get_base(UIGtkPrefs *self)
 {
 	g_return_if_fail(UI_IS_GTK_PREFS(self));
 
-	return self->priv->base_clone;
+	return self->priv->base;
 }
 
 static void
@@ -83,6 +84,7 @@ ui_gtk_prefs_init(UIGtkPrefs *self)
 {
 	self->priv = UI_GTK_PREFS_GET_PRIVATE(self);
 	self->priv->window = NULL;
+	self->priv->pid_of_ttb = 0;
 }
 
 static void
@@ -147,14 +149,22 @@ ui_gtk_prefs_show_prefs(UIGtkPrefs *self)
 	                                                     "apply_button"));
 	priv->list = GTK_LIST_STORE(gtk_builder_get_object(builder,
 	                                                   "apps_list"));
+	priv->treeview = GTK_TREE_VIEW(gtk_builder_get_object(builder,
+	                                                   "apps_treeview"));
 	ui_gtk_prefs_setup_list(self);
 
 	gtk_builder_connect_signals(builder, self);
 
 	g_object_unref(G_OBJECT(builder));
 	gtk_widget_show(GTK_WIDGET(priv->window));
+}
 
-	return;
+void
+ui_gtk_prefs_set_pid_of_ttb(UIGtkPrefs *self, int pid)
+{
+	g_return_if_fail(UI_IS_GTK_PREFS(self));
+
+	self->priv->pid_of_ttb = pid;
 }
 
 static void
@@ -170,6 +180,24 @@ ui_gtk_prefs_set_cell_text(UIGtkPrefs *self, int column, gchar *path_string,
 	gtk_list_store_set(list_store, &iter, column, new_text, -1);
 }
 
+static void
+restart_ttb(UIGtkPrefs *self)
+{
+	UIGtkPrefsPrivate *priv = self->priv;
+
+	if (priv->pid_of_ttb == 0)
+		return;
+	
+	char *ttb = bindir "ttb";
+	GPid new_pid;
+
+	/* Not portable */
+	kill(priv->pid_of_ttb, SIGTERM);
+
+	g_spawn_async(NULL, &ttb, NULL, 0, NULL, NULL, &new_pid, NULL);
+	priv->pid_of_ttb = new_pid;
+}
+
 G_MODULE_EXPORT void
 cb_name_edited(GtkCellRendererText *cell, gchar *path_string, gchar *new_text,
                gpointer data)
@@ -177,7 +205,7 @@ cb_name_edited(GtkCellRendererText *cell, gchar *path_string, gchar *new_text,
 	UIGtkPrefs *self = UI_GTK_PREFS(data);
 	UIGtkPrefsPrivate *priv = self->priv;
 	ui_gtk_prefs_set_cell_text(self, COLUMN_NAME, path_string, new_text);
-	ttb_base_set_entry_name(priv->base_clone, atoi(path_string), new_text);
+	ttb_base_set_entry_name(priv->base, atoi(path_string), new_text);
 }
 
 G_MODULE_EXPORT void
@@ -187,7 +215,7 @@ cb_exec_edited(GtkCellRendererText *cell, gchar *path_string, gchar *new_text,
 	UIGtkPrefs *self = UI_GTK_PREFS(data);
 	UIGtkPrefsPrivate *priv = self->priv;
 	ui_gtk_prefs_set_cell_text(self, COLUMN_EXEC, path_string, new_text);
-	ttb_base_set_entry_exec(priv->base_clone, atoi(path_string), new_text);
+	ttb_base_set_entry_exec(priv->base, atoi(path_string), new_text);
 }
 
 G_MODULE_EXPORT void
@@ -197,7 +225,7 @@ cb_icon_edited(GtkCellRendererText *cell, gchar *path_string, gchar *new_text,
 	UIGtkPrefs *self = UI_GTK_PREFS(data);
 	UIGtkPrefsPrivate *priv = self->priv;
 	ui_gtk_prefs_set_cell_text(self, COLUMN_ICON, path_string, new_text);
-	ttb_base_set_entry_icon(priv->base_clone, atoi(path_string), new_text);
+	ttb_base_set_entry_icon(priv->base, atoi(path_string), new_text);
 }
 
 G_MODULE_EXPORT void
@@ -206,9 +234,11 @@ cb_apply_clicked(GtkWidget *widget, gpointer data)
 	UIGtkPrefs *self = UI_GTK_PREFS(data);
 	UIGtkPrefsPrivate *priv = self->priv;
 
-	GSList *list = ttb_base_get_entries_list(priv->base_clone);
-	ttb_base_set_entries_list(priv->base, list);
+	TTBFBase *fbase = TTB_FBASE(priv->base);
+	ttb_fbase_save(fbase);
 	gtk_widget_set_sensitive(widget, FALSE);
+
+	restart_ttb(self);
 }
 
 G_MODULE_EXPORT void
@@ -218,22 +248,57 @@ cb_ok_clicked(GtkWidget *widget, gpointer data)
 	UIGtkPrefsPrivate *priv = self->priv;
 
 	cb_apply_clicked(priv->apply_button, data);
-	gtk_widget_hide(priv->window);
+	gtk_main_quit();
 }
 
 G_MODULE_EXPORT void
 cb_add_clicked(GtkWidget *widget, gpointer data)
 {
+	g_debug("Add clicked");
 }
 
 G_MODULE_EXPORT void
 cb_remove_clicked(GtkWidget *widget, gpointer data)
 {
+	UIGtkPrefs *self = UI_GTK_PREFS(data);
+	UIGtkPrefsPrivate *priv = self->priv;
+	GtkTreeIter iter;
+	GtkTreeView *treeview = priv->treeview; 
+	GtkTreeModel *model = gtk_tree_view_get_model(treeview);
+	GtkTreeSelection *selection = gtk_tree_view_get_selection (treeview);
+	TTBBase *base = priv->base;
+
+	if (gtk_tree_selection_get_selected(selection, NULL, &iter)) {
+		gint i;
+		GtkTreePath *path;
+
+		path = gtk_tree_model_get_path(model, &iter);
+		i = gtk_tree_path_get_indices(path)[0];
+ 		gtk_list_store_remove(GTK_LIST_STORE (model), &iter);
+
+		ttb_base_remove_entry(base, i);
+
+		gtk_tree_path_free (path);
+	}
 }
 
 G_MODULE_EXPORT void
 cb_new_clicked(GtkWidget *widget, gpointer data)
 {
+	UIGtkPrefs *self = UI_GTK_PREFS(data);
+	UIGtkPrefsPrivate *priv = self->priv;
+	GtkTreeIter iter;
+	GtkTreeView *treeview = priv->treeview; 
+	GtkTreeModel *model = gtk_tree_view_get_model(treeview);
+	TTBBase *base = priv->base;
+	
+	gtk_list_store_append (GTK_LIST_STORE (model), &iter);
+	gtk_list_store_set (GTK_LIST_STORE (model), &iter,
+	                    COLUMN_NAME, "",
+	                    COLUMN_EXEC, "",
+	                    COLUMN_ICON, "",
+	                    -1);
+	ttb_base_add_entry(base, "", "", "");
 }
 
 static void
@@ -253,6 +318,7 @@ ui_gtk_prefs_class_init(UIGtkPrefsClass *klass)
 	                                pspec);
 
 	klass->show_prefs = ui_gtk_prefs_show_prefs;
+	klass->set_pid_of_ttb = ui_gtk_prefs_set_pid_of_ttb;
 
 	g_type_class_add_private(klass, sizeof(UIGtkPrefsPrivate));
 }
