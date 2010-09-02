@@ -257,27 +257,14 @@ remove_entry(TTBBase *self, gint index)
 	g_free(item);
 }
 
-TTBBase*
-ttb_base_clone(TTBBase *self)
-{
-	g_return_if_fail(TTB_IS_BASE(self));
-
-	TTBBase *ret = g_object_new(TTB_TYPE_BASE, NULL);
-	ttb_base_set_entries_list(ret, self->priv->list);
-	return ret;
-}
-
 static void
 set_entry(TTBBase *self, gint index, int field, gchar *value)
 {
 	TTBBasePrivate *priv = self->priv;
-	GSList *list = priv->list;
-	int i;
-	for (i = 0; i < index; ++i) {
-		g_return_if_fail(list);
-		list = g_slist_next(list);
-	}
-	DesktopItem *item = list->data;
+	GSList *entry = g_slist_nth(priv->list, index);
+	g_return_if_fail(entry);
+
+	DesktopItem *item = entry->data;
 	switch (field) {
 	case FIELD_NAME:
 		if (item->name)
@@ -344,7 +331,6 @@ ttb_base_class_init(TTBBaseClass *klass)
 	klass->set_entry_name      = ttb_base_set_entry_name;
 	klass->set_entry_exec      = ttb_base_set_entry_exec;
 	klass->set_entry_icon      = ttb_base_set_entry_icon;
-	klass->clone               = ttb_base_clone;
 	klass->load_from_dir       = load_from_dir;
 	klass->execute             = ttb_base_execute;
 	klass->load_keys_from_file = ttb_base_load_keys_from_file;

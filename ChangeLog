@@ -1,3 +1,7 @@
+2010-09-02  Mariusz Adamski <mariusz.adamski@gmail.com>
+	* src/ttb-base.c: Code clean-up.
+	* src/ttb-base.c, src-ttb-base.h (ttb_base_clone): Removed.
+
 2010-09-01  Mariusz Adamski <mariusz.adamski@gmail.com>
 	* src/ttb-fbase.c, src/ttb-fbase.h: New files.
 	* src/Makefile.am: Ditto.

@@ -63,7 +63,6 @@ struct _TTBBaseClass
 	void (*set_entry_name)(TTBBase *self, gint index, gchar *name);
 	void (*set_entry_exec)(TTBBase *self, gint index, gchar *exec);
 	void (*set_entry_icon)(TTBBase *self, gint index, gchar *exec);
-	TTBBase* (*clone)(TTBBase *self);
 	void (*load_from_dir)(TTBBase *self, gchar *dirname); /* virtual */
 	void (*execute)(gchar *exec);
 	/* protected */
@@ -98,8 +97,6 @@ void ttb_base_set_entry_name(TTBBase *self, gint index, gchar *name);
 void ttb_base_set_entry_exec(TTBBase *self, gint index, gchar *exec);
 
 void ttb_base_set_entry_icon(TTBBase *self, gint index, gchar *icon);
-
-TTBBase* ttb_base_clone(TTBBase *self);
 
 void ttb_base_execute(gchar *exec);
 
