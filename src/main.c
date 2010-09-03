@@ -29,7 +29,6 @@ int main(int argc, char **argv)
 	gchar *dirname = g_build_filename(g_get_home_dir(),
 	                                  ".local/share/applications/ttb",
 	                                  NULL);
-	g_mkdir_with_parents(dirname, 0755);
 	TTBBase *base = g_object_new(TTB_TYPE_BASE, NULL);
 	ttb_base_load_from_dir(base, dirname);
 	g_free(dirname);

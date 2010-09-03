@@ -57,6 +57,12 @@ struct _TTBFBaseClass
 
 	/* class members */
 	void (*save)(TTBFBase *self);
+	void (*add_entry)(TTBFBase *self, gchar *name, gchar *exec,
+	                  gchar *icon);
+	void (*remove_entry)(TTBFBase *self, gint index);
+	void (*set_entry_name)(TTBFBase *self, gint index, gchar *name);
+	void (*set_entry_exec)(TTBFBase *self, gint index, gchar *exec);
+	void (*set_entry_icon)(TTBFBase *self, gint index, gchar *exec);
 };
 
 /* used by TTB_TYPE_FBASE */
@@ -67,6 +73,17 @@ GType ttb_fbase_get_type(void);
  */
 
 void ttb_fbase_save(TTBFBase *self);
+
+void ttb_fbase_add_entry(TTBFBase *self, gchar *name, gchar *exec,
+                         gchar *icon);
+
+void ttb_fbase_remove_entry(TTBFBase *self, gint index);
+
+void ttb_base_set_entry_name(TTBFBase *self, gint index, gchar *name);
+
+void ttb_base_set_entry_exec(TTBFBase *self, gint index, gchar *exec);
+
+void ttb_base_set_entry_icon(TTBFBase *self, gint index, gchar *icon);
 
 G_END_DECLS
 

@@ -1,3 +1,11 @@
+2010-09-03  Mariusz Adamski <mariusz.adamski@gmail.com>
+	* src/gtk-prefs-main, src/main.c, ttb-base.c: Moved directory creation
+	to TTBBase::load_from_dir.
+	* src/ttb-base.c, src/ttb-base.h (add_entry, remove_entry,
+	set_entry_name, set_entry_exec, set_entry_icon): Moved to TTBFBase.
+	* src/ttb-fbase.c, src/ttb-fbase.h: Ditto.
+	* src/ui-gtk-prefs.c: Ditto.
+
 2010-09-02  Mariusz Adamski <mariusz.adamski@gmail.com>
 	* src/ttb-base.c: Code clean-up.
 	* src/ttb-base.c, src-ttb-base.h (ttb_base_clone): Removed.

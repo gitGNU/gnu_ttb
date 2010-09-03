@@ -32,6 +32,12 @@
 
 G_DEFINE_TYPE(TTBFBase, ttb_fbase, TTB_TYPE_BASE);
 
+enum {
+	FIELD_NAME,
+	FIELD_EXEC,
+	FIELD_ICON
+};
+
 struct _TTBFBasePrivate
 {
 	GSList *list;
@@ -128,36 +134,106 @@ make_name(gchar *dirname, gchar *name)
 	return result;
 }
 
-/* FIXME: Make it return gboolean so we know if adding an entry was succesful
- * before messing with filename list */
-static void
-add_entry(TTBBase *self, gchar *name, gchar *exec, gchar *icon)
+void
+ttb_fbase_add_entry(TTBFBase *self, gchar *name, gchar *exec, gchar *icon)
 {
 	g_return_if_fail(TTB_IS_FBASE(self));
 
-	TTBBaseClass *klass = TTB_BASE_CLASS(ttb_fbase_parent_class);
-	TTBFBasePrivate *priv = TTB_FBASE(self)->priv;
+	TTBFBasePrivate *priv = self->priv;
+	DesktopItem *item = g_malloc(sizeof(DesktopItem));
+	GSList *itemlist = ttb_base_get_entries_list(TTB_BASE(self));
 
+	item->name = name? g_strdup(name) : g_strdup("");
+	item->exec = exec? g_strdup(exec) : g_strdup("");
+	item->icon = icon? g_strdup(icon) : g_strdup("");
+	itemlist = g_slist_append(itemlist, item);
+	ttb_base_set_entries_list(TTB_BASE(self), itemlist);
+
+	/* Appending NULL; filename will be determined while saving */
 	priv->list = g_slist_append(priv->list, NULL);
-
-	klass->add_entry(self, name, exec, icon);
 }
 
-static void
-remove_entry(TTBBase *self, gint index)
+void
+ttb_fbase_remove_entry(TTBFBase *self, gint index)
 {
 	g_return_if_fail(TTB_IS_FBASE(self));
 
-	TTBBaseClass *klass = TTB_BASE_CLASS(ttb_fbase_parent_class);
 	TTBFBasePrivate *priv = TTB_FBASE(self)->priv;
 
 	GSList *entry = g_slist_nth(priv->list, index);
 	if (!entry)
 		return;
+
+	GSList *itemlist = ttb_base_get_entries_list(TTB_BASE(self));
+	GSList *itementry = g_slist_nth(itemlist, index);
+	if (!itementry)
+		return;
+
+	itemlist = g_slist_remove_link(itemlist, itementry);
+	DesktopItem *item = itementry->data;
+	g_free(item->name);
+	g_free(item->exec);
+	g_free(item->icon);
+	g_free(item);
+	ttb_base_set_entries_list(TTB_BASE(self), itemlist);
+
 	priv->remove = g_slist_append(priv->remove, g_strdup(entry->data));
 	priv->list = g_slist_delete_link(priv->list, entry);
+}
 
-	klass->remove_entry(self, index);
+static void
+set_entry(TTBFBase *self, gint index, int field, gchar *value)
+{
+	g_return_if_fail(TTB_IS_FBASE(self));
+
+	GSList *list  = ttb_base_get_entries_list(TTB_BASE(self));
+	GSList *entry = g_slist_nth(list, index);
+	g_return_if_fail(entry);
+
+	DesktopItem *item = entry->data;
+	switch (field) {
+	case FIELD_NAME:
+		if (item->name)
+			g_free(item->name);
+		item->name = g_strdup(value);
+		break;
+	case FIELD_EXEC:
+		if (item->exec)
+			g_free(item->exec);
+		item->exec = g_strdup(value);
+		break;
+	case FIELD_ICON:
+		if (item->icon)
+			g_free(item->icon);
+		item->icon = g_strdup(value);
+		break;
+	default:
+		g_warning("[TTBFBase::set_entry] Unknown field: %d\n", field);
+	}
+}
+
+void
+ttb_fbase_set_entry_name(TTBFBase *self, gint index, gchar *name)
+{
+	g_return_if_fail(TTB_IS_FBASE(self));
+
+	set_entry(self, index, FIELD_NAME, name);
+}
+
+void
+ttb_fbase_set_entry_exec(TTBFBase *self, gint index, gchar *exec)
+{
+	g_return_if_fail(TTB_IS_FBASE(self));
+
+	set_entry(self, index, FIELD_EXEC, exec);
+}
+
+void
+ttb_fbase_set_entry_icon(TTBFBase *self, gint index, gchar *icon)
+{
+	g_return_if_fail(TTB_IS_FBASE(self));
+
+	set_entry(self, index, FIELD_ICON, icon);
 }
 
 /* TODO: Error handling and reporting */
@@ -233,10 +309,13 @@ ttb_fbase_class_init(TTBFBaseClass *klass)
 
 	base_class->load_keys_from_file = load_keys_from_file;
 	base_class->load_from_dir       = load_from_dir;
-	base_class->add_entry           = add_entry;
-	base_class->remove_entry        = remove_entry;
 
-	klass->save = ttb_fbase_save;
+	klass->save           = ttb_fbase_save;
+	klass->add_entry      = ttb_fbase_add_entry;
+	klass->remove_entry   = ttb_fbase_remove_entry;
+	klass->set_entry_name = ttb_fbase_set_entry_name;
+	klass->set_entry_exec = ttb_fbase_set_entry_exec;
+	klass->set_entry_icon = ttb_fbase_set_entry_icon;
 
 	g_type_class_add_private(klass, sizeof(TTBFBasePrivate));
 }

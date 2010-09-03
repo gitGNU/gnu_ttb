@@ -33,7 +33,7 @@ G_DEFINE_TYPE(UIGtkPrefs, ui_gtk_prefs, G_TYPE_OBJECT)
 
 struct _UIGtkPrefsPrivate
 {
-	TTBBase *base;
+	TTBFBase *base;
 	GtkWidget *window;
 	GtkWidget *apply_button;
 	GtkListStore *list;
@@ -63,20 +63,12 @@ ui_gtk_prefs_set_property(GObject      *object,
 
 	switch (property_id) {
 	case UI_GTK_PREFS_PROP_BASE:
-		priv->base = TTB_BASE(g_value_get_object(value));
+		priv->base = TTB_FBASE(g_value_get_object(value));
 		break;
 	default:
 		G_OBJECT_WARN_INVALID_PROPERTY_ID(object, property_id, pspec);
 		break;
 	}
-}
-
-TTBBase*
-ui_gtk_prefs_get_base(UIGtkPrefs *self)
-{
-	g_return_if_fail(UI_IS_GTK_PREFS(self));
-
-	return self->priv->base;
 }
 
 static void
@@ -107,7 +99,7 @@ ui_gtk_prefs_setup_list(UIGtkPrefs *self)
 	g_return_if_fail(UI_IS_GTK_PREFS(self));
 
 	GtkTreeIter iter;
-	TTBBase *base = self->priv->base;
+	TTBBase *base = TTB_BASE(self->priv->base);
 	GtkListStore *list_store = self->priv->list;
 	GSList *list = ttb_base_get_entries_list(base);
 
@@ -205,7 +197,7 @@ cb_name_edited(GtkCellRendererText *cell, gchar *path_string, gchar *new_text,
 	UIGtkPrefs *self = UI_GTK_PREFS(data);
 	UIGtkPrefsPrivate *priv = self->priv;
 	ui_gtk_prefs_set_cell_text(self, COLUMN_NAME, path_string, new_text);
-	ttb_base_set_entry_name(priv->base, atoi(path_string), new_text);
+	ttb_fbase_set_entry_name(priv->base, atoi(path_string), new_text);
 }
 
 G_MODULE_EXPORT void
@@ -215,7 +207,7 @@ cb_exec_edited(GtkCellRendererText *cell, gchar *path_string, gchar *new_text,
 	UIGtkPrefs *self = UI_GTK_PREFS(data);
 	UIGtkPrefsPrivate *priv = self->priv;
 	ui_gtk_prefs_set_cell_text(self, COLUMN_EXEC, path_string, new_text);
-	ttb_base_set_entry_exec(priv->base, atoi(path_string), new_text);
+	ttb_fbase_set_entry_exec(priv->base, atoi(path_string), new_text);
 }
 
 G_MODULE_EXPORT void
@@ -225,7 +217,7 @@ cb_icon_edited(GtkCellRendererText *cell, gchar *path_string, gchar *new_text,
 	UIGtkPrefs *self = UI_GTK_PREFS(data);
 	UIGtkPrefsPrivate *priv = self->priv;
 	ui_gtk_prefs_set_cell_text(self, COLUMN_ICON, path_string, new_text);
-	ttb_base_set_entry_icon(priv->base, atoi(path_string), new_text);
+	ttb_fbase_set_entry_icon(priv->base, atoi(path_string), new_text);
 }
 
 G_MODULE_EXPORT void
@@ -266,7 +258,7 @@ cb_remove_clicked(GtkWidget *widget, gpointer data)
 	GtkTreeView *treeview = priv->treeview; 
 	GtkTreeModel *model = gtk_tree_view_get_model(treeview);
 	GtkTreeSelection *selection = gtk_tree_view_get_selection (treeview);
-	TTBBase *base = priv->base;
+	TTBFBase *base = priv->base;
 
 	if (gtk_tree_selection_get_selected(selection, NULL, &iter)) {
 		gint i;
@@ -276,7 +268,7 @@ cb_remove_clicked(GtkWidget *widget, gpointer data)
 		i = gtk_tree_path_get_indices(path)[0];
  		gtk_list_store_remove(GTK_LIST_STORE (model), &iter);
 
-		ttb_base_remove_entry(base, i);
+		ttb_fbase_remove_entry(base, i);
 
 		gtk_tree_path_free (path);
 	}
@@ -290,7 +282,7 @@ cb_new_clicked(GtkWidget *widget, gpointer data)
 	GtkTreeIter iter;
 	GtkTreeView *treeview = priv->treeview; 
 	GtkTreeModel *model = gtk_tree_view_get_model(treeview);
-	TTBBase *base = priv->base;
+	TTBFBase *base = priv->base;
 	
 	gtk_list_store_append (GTK_LIST_STORE (model), &iter);
 	gtk_list_store_set (GTK_LIST_STORE (model), &iter,
@@ -298,7 +290,7 @@ cb_new_clicked(GtkWidget *widget, gpointer data)
 	                    COLUMN_EXEC, "",
 	                    COLUMN_ICON, "",
 	                    -1);
-	ttb_base_add_entry(base, "", "", "");
+	ttb_fbase_add_entry(base, "", "", "");
 }
 
 static void
@@ -311,7 +303,7 @@ ui_gtk_prefs_class_init(UIGtkPrefsClass *klass)
 	gobject_class->finalize     = ui_gtk_prefs_finalize;
 	gobject_class->set_property = ui_gtk_prefs_set_property;
 
-	pspec = g_param_spec_object("base", "base", "base", TTB_TYPE_BASE,
+	pspec = g_param_spec_object("base", "base", "base", TTB_TYPE_FBASE,
 	                            G_PARAM_CONSTRUCT_ONLY
 	                            | G_PARAM_WRITABLE);
 	g_object_class_install_property(gobject_class, UI_GTK_PREFS_PROP_BASE,

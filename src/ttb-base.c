@@ -36,6 +36,8 @@ struct _TTBBasePrivate
 	GSList *list;
 };
 
+/* Eliminates %-values from input string.
+ * Returns new string, which should be g_free'd; frees input string */
 gchar*
 ttb_base_unquote_exec(gchar *input)
 {
@@ -86,7 +88,8 @@ ttb_base_load_keys_from_file(TTBBase *self, gchar *fname, GKeyFile *kfile)
 {
 	if (!g_key_file_load_from_file(kfile, fname, G_KEY_FILE_NONE, NULL))
 		return FALSE;
-		
+
+	TTBBasePrivate *priv = self->priv;
 	DesktopItem *item = g_malloc(sizeof(DesktopItem));
 
 	gchar *val;
@@ -101,17 +104,18 @@ ttb_base_load_keys_from_file(TTBBase *self, gchar *fname, GKeyFile *kfile)
 	
 	val = g_key_file_get_string(kfile,
 	                            G_KEY_FILE_DESKTOP_GROUP,
-		                    G_KEY_FILE_DESKTOP_KEY_NAME,
-		                    NULL);
-	item->name = val;
+	                            G_KEY_FILE_DESKTOP_KEY_NAME,
+	                            NULL);
+
+	item->name = val? val : g_strdup("");
 
 	val = g_key_file_get_string(kfile,
 	                            G_KEY_FILE_DESKTOP_GROUP,
 	                            G_KEY_FILE_DESKTOP_KEY_ICON,
 	                            NULL);
-	item->icon = val;
+	item->icon = val? val : g_strdup("");
 
-	self->priv->list = g_slist_append(self->priv->list, item);
+	priv->list = g_slist_append(priv->list, item);
 	return TRUE;
 }
 
@@ -127,11 +131,14 @@ static void
 load_from_dir(TTBBase *self, gchar *dirname)
 {
 	TTBBaseClass *klass = TTB_BASE_GET_CLASS(self);
-	GDir *dir = g_dir_open(dirname, 0, NULL);
-	GKeyFile *kfile = g_key_file_new();
+	GDir *dir;
 	const gchar *name;
+	GKeyFile *kfile = g_key_file_new();
 	TTBBasePrivate *priv = self->priv;
 
+	/* In case given directory doesn't exist - create it */
+	g_mkdir_with_parents(dirname, 0755);
+	dir = g_dir_open(dirname, 0, NULL);
 	while (name = g_dir_read_name(dir)) {
 		gchar *dfname = g_build_filename(dirname, name, NULL);
 		klass->load_keys_from_file(self, dfname, kfile);	
@@ -188,73 +195,7 @@ ttb_base_set_entries_list(TTBBase *self, GSList *list)
 {
 	g_return_if_fail(TTB_IS_BASE(self));
 
-	TTBBasePrivate *priv = self->priv;
-	GSList *old_list = priv->list;
-	while(old_list) {
-		DesktopItem *item = old_list->data;
-		g_free(item->name);
-		g_free(item->exec);
-		g_free(item->icon);
-		g_free(item);
-		old_list = g_slist_next(old_list);
-	}
-	g_slist_free(priv->list);
-
-	priv->list = NULL;
-	while(list) {
-		DesktopItem *new_item = list->data;
-		DesktopItem *item = g_malloc(sizeof(DesktopItem));
-		item->name = g_strdup(new_item->name);
-		item->exec = g_strdup(new_item->exec);
-		item->icon = g_strdup(new_item->icon);
-		priv->list = g_slist_append(priv->list, item);
-		list = g_slist_next(list);
-	}
-}
-
-void
-ttb_base_add_entry(TTBBase *self, gchar *name, gchar *exec, gchar *icon)
-{
-	TTBBaseClass *klass = TTB_BASE_GET_CLASS(self);
-	klass->add_entry(self, name, exec, icon);
-}
-
-static void
-add_entry(TTBBase *self, gchar *name, gchar *exec, gchar *icon)
-{
-	g_return_if_fail(TTB_IS_BASE(self));
-
-	TTBBasePrivate *priv = self->priv;
-	DesktopItem    *item = g_malloc(sizeof(DesktopItem));
-	item->name = g_strdup(name);
-	item->exec = g_strdup(exec);
-	item->icon = g_strdup(icon);
-	priv->list = g_slist_append(priv->list, item);
-}
-
-void
-ttb_base_remove_entry(TTBBase *self, gint index)
-{
-	TTBBaseClass *klass = TTB_BASE_GET_CLASS(self);
-	klass->remove_entry(self, index);
-}
-
-static void
-remove_entry(TTBBase *self, gint index)
-{
-	g_return_if_fail(TTB_IS_BASE(self));
-
-	TTBBasePrivate *priv = self->priv;
-
-	GSList *entry = g_slist_nth(priv->list, index);
-	if (!entry)
-		return;
-	priv->list = g_slist_remove_link(priv->list, entry);
-	DesktopItem *item = entry->data;
-	g_free(item->name);
-	g_free(item->exec);
-	g_free(item->icon);
-	g_free(item);
+	self->priv->list = list;
 }
 
 static void
@@ -326,11 +267,6 @@ ttb_base_class_init(TTBBaseClass *klass)
 
 	klass->get_entries_list    = ttb_base_get_entries_list;
 	klass->set_entries_list    = ttb_base_set_entries_list;
-	klass->add_entry           = add_entry;
-	klass->remove_entry        = remove_entry;
-	klass->set_entry_name      = ttb_base_set_entry_name;
-	klass->set_entry_exec      = ttb_base_set_entry_exec;
-	klass->set_entry_icon      = ttb_base_set_entry_icon;
 	klass->load_from_dir       = load_from_dir;
 	klass->execute             = ttb_base_execute;
 	klass->load_keys_from_file = ttb_base_load_keys_from_file;
