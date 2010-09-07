@@ -25,6 +25,7 @@
 #include "ttb-paths.h"
 
 #define UI_FILE datadir "glade/prefs.ui"
+#define APP_DIR "/usr/share/applications"
 
 #define UI_GTK_PREFS_GET_PRIVATE(obj) (G_TYPE_INSTANCE_GET_PRIVATE((obj), \
                                        UI_TYPE_GTK_PREFS, UIGtkPrefsPrivate))
@@ -34,10 +35,12 @@ G_DEFINE_TYPE(UIGtkPrefs, ui_gtk_prefs, G_TYPE_OBJECT)
 struct _UIGtkPrefsPrivate
 {
 	TTBFBase *base;
+	TTBBase *sysapp_db;
 	GtkWidget *window;
 	GtkWidget *apply_button;
-	GtkListStore *list;
-	GtkTreeView *treeview;
+	GtkTreeView *tree;
+	GtkWidget *app_chooser;
+	GtkTreeView *sysapp_tree;
 	int pid_of_ttb;
 };
 
@@ -75,8 +78,12 @@ static void
 ui_gtk_prefs_init(UIGtkPrefs *self)
 {
 	self->priv = UI_GTK_PREFS_GET_PRIVATE(self);
-	self->priv->window = NULL;
-	self->priv->pid_of_ttb = 0;
+	UIGtkPrefsPrivate *priv = self->priv;
+
+	priv->sysapp_db   = NULL;
+	priv->window      = NULL;
+	priv->app_chooser = NULL;
+	priv->pid_of_ttb  = 0;
 }
 
 static void
@@ -89,27 +96,47 @@ ui_gtk_prefs_dispose(GObject *gobject)
 static void
 ui_gtk_prefs_finalize(GObject *gobject)
 {
+	UIGtkPrefs *self = UI_GTK_PREFS(gobject);
+
+	if (self->priv->sysapp_db)
+		g_object_unref(self->priv->sysapp_db);
+
 	/* Chain up to the parent class */
 	G_OBJECT_CLASS(ui_gtk_prefs_parent_class)->finalize(gobject);
 }
 
 static void
-ui_gtk_prefs_setup_list(UIGtkPrefs *self)
+setup_tree(TTBBase *base, GtkTreeView *tree)
 {
-	g_return_if_fail(UI_IS_GTK_PREFS(self));
-
 	GtkTreeIter iter;
-	TTBBase *base = TTB_BASE(self->priv->base);
-	GtkListStore *list_store = self->priv->list;
 	GSList *list = ttb_base_get_entries_list(base);
+	GtkListStore *store = GTK_LIST_STORE(gtk_tree_view_get_model(tree));
 
 	while (list) {
 		DesktopItem *item = list->data;
-		gtk_list_store_append(list_store, &iter);
-		gtk_list_store_set(list_store, &iter,
+		gtk_list_store_append(store, &iter);
+		gtk_list_store_set(store, &iter,
 		                   COLUMN_NAME, item->name,
 		                   COLUMN_EXEC, item->exec,
 		                   COLUMN_ICON, item->icon,
+		                   -1);
+		list = g_slist_next(list);
+	}
+}
+
+static void
+setup_sysapp_tree(TTBBase *base, GtkTreeView *tree)
+{
+	GtkTreeIter iter;
+	GSList *list = ttb_base_get_entries_list(base);
+	GtkListStore *store = GTK_LIST_STORE(gtk_tree_view_get_model(tree));
+
+	while (list) {
+		DesktopItem *item = list->data;
+		gtk_list_store_append(store, &iter);
+		gtk_list_store_set(store, &iter,
+		                   0, item->icon,
+		                   1, item->name,
 		                   -1);
 		list = g_slist_next(list);
 	}
@@ -127,7 +154,7 @@ ui_gtk_prefs_show_prefs(UIGtkPrefs *self)
 	}
 
 	GtkBuilder *builder;
-	GError     *error = NULL;
+	GError *error = NULL;
 
 	builder = gtk_builder_new();
 	if(!gtk_builder_add_from_file(builder, UI_FILE, &error)) {
@@ -139,11 +166,13 @@ ui_gtk_prefs_show_prefs(UIGtkPrefs *self)
 	                                                 "prefs_window"));
 	priv->apply_button = GTK_WIDGET(gtk_builder_get_object(builder,
 	                                                     "apply_button"));
-	priv->list = GTK_LIST_STORE(gtk_builder_get_object(builder,
-	                                                   "apps_list"));
-	priv->treeview = GTK_TREE_VIEW(gtk_builder_get_object(builder,
-	                                                   "apps_treeview"));
-	ui_gtk_prefs_setup_list(self);
+	priv->tree = GTK_TREE_VIEW(gtk_builder_get_object(builder,
+	                                                  "apps_treeview"));
+	priv->app_chooser = GTK_WIDGET(gtk_builder_get_object(builder,
+	                                                      "app_chooser"));
+	priv->sysapp_tree = GTK_TREE_VIEW(gtk_builder_get_object(builder,
+	                                                      "sysapp_tree"));
+	setup_tree(TTB_BASE(priv->base), priv->tree);
 
 	gtk_builder_connect_signals(builder, self);
 
@@ -165,11 +194,12 @@ ui_gtk_prefs_set_cell_text(UIGtkPrefs *self, int column, gchar *path_string,
 {
 	g_return_if_fail(UI_IS_GTK_PREFS(self));
 
-	GtkListStore *list_store = self->priv->list;
-	GtkTreePath  *path = gtk_tree_path_new_from_string(path_string);
-	GtkTreeIter   iter;
-	gtk_tree_model_get_iter(GTK_TREE_MODEL(list_store), &iter, path);
-	gtk_list_store_set(list_store, &iter, column, new_text, -1);
+	GtkTreeView *tree = self->priv->tree;
+	GtkTreeModel *model = gtk_tree_view_get_model(tree);
+	GtkTreePath *path = gtk_tree_path_new_from_string(path_string);
+	GtkTreeIter iter;
+	gtk_tree_model_get_iter(model, &iter, path);
+	gtk_list_store_set(GTK_LIST_STORE(model), &iter, column, new_text, -1);
 }
 
 static void
@@ -246,7 +276,17 @@ cb_ok_clicked(GtkWidget *widget, gpointer data)
 G_MODULE_EXPORT void
 cb_add_clicked(GtkWidget *widget, gpointer data)
 {
-	g_debug("Add clicked");
+	UIGtkPrefs *self = UI_GTK_PREFS(data);
+	UIGtkPrefsPrivate *priv = self->priv;
+
+	if (priv->sysapp_db == NULL) {
+		priv->sysapp_db = g_object_new(TTB_TYPE_BASE, NULL);
+		ttb_base_load_from_dir(priv->sysapp_db,
+		                       APP_DIR);
+		setup_sysapp_tree(priv->sysapp_db, priv->sysapp_tree);
+	}
+
+	gtk_widget_show(priv->app_chooser);
 }
 
 G_MODULE_EXPORT void
@@ -254,10 +294,11 @@ cb_remove_clicked(GtkWidget *widget, gpointer data)
 {
 	UIGtkPrefs *self = UI_GTK_PREFS(data);
 	UIGtkPrefsPrivate *priv = self->priv;
+
 	GtkTreeIter iter;
-	GtkTreeView *treeview = priv->treeview; 
-	GtkTreeModel *model = gtk_tree_view_get_model(treeview);
-	GtkTreeSelection *selection = gtk_tree_view_get_selection (treeview);
+	GtkTreeView *tree = priv->tree; 
+	GtkTreeModel *model = gtk_tree_view_get_model(tree);
+	GtkTreeSelection *selection = gtk_tree_view_get_selection(tree);
 	TTBFBase *base = priv->base;
 
 	if (gtk_tree_selection_get_selected(selection, NULL, &iter)) {
@@ -266,11 +307,11 @@ cb_remove_clicked(GtkWidget *widget, gpointer data)
 
 		path = gtk_tree_model_get_path(model, &iter);
 		i = gtk_tree_path_get_indices(path)[0];
- 		gtk_list_store_remove(GTK_LIST_STORE (model), &iter);
+ 		gtk_list_store_remove(GTK_LIST_STORE(model), &iter);
 
 		ttb_fbase_remove_entry(base, i);
 
-		gtk_tree_path_free (path);
+		gtk_tree_path_free(path);
 	}
 }
 
@@ -279,18 +320,56 @@ cb_new_clicked(GtkWidget *widget, gpointer data)
 {
 	UIGtkPrefs *self = UI_GTK_PREFS(data);
 	UIGtkPrefsPrivate *priv = self->priv;
+
 	GtkTreeIter iter;
-	GtkTreeView *treeview = priv->treeview; 
-	GtkTreeModel *model = gtk_tree_view_get_model(treeview);
+	GtkTreeView *tree = priv->tree; 
+	GtkListStore *store = GTK_LIST_STORE(gtk_tree_view_get_model(tree));
 	TTBFBase *base = priv->base;
 	
-	gtk_list_store_append (GTK_LIST_STORE (model), &iter);
-	gtk_list_store_set (GTK_LIST_STORE (model), &iter,
-	                    COLUMN_NAME, "",
-	                    COLUMN_EXEC, "",
-	                    COLUMN_ICON, "",
-	                    -1);
+	gtk_list_store_append(store, &iter);
+	gtk_list_store_set(store, &iter,
+	                   COLUMN_NAME, "",
+	                   COLUMN_EXEC, "",
+	                   COLUMN_ICON, "",
+	                   -1);
 	ttb_fbase_add_entry(base, "", "", "");
+}
+
+G_MODULE_EXPORT void
+cb_sysapp_chosen(GtkWidget *widget, gpointer *data)
+{
+	UIGtkPrefs *self = UI_GTK_PREFS(data);
+	UIGtkPrefsPrivate *priv = self->priv;
+
+	GtkTreeIter iter;
+	GtkTreeView *tree = priv->sysapp_tree;
+	GtkTreeModel *model = gtk_tree_view_get_model(tree);
+	GtkListStore *apps = GTK_LIST_STORE(gtk_tree_view_get_model(
+	                                    priv->tree));
+	GtkTreeSelection *selection = gtk_tree_view_get_selection(tree);
+	TTBFBase *base = priv->base;
+
+	gtk_widget_hide(priv->app_chooser);
+
+	if (gtk_tree_selection_get_selected(selection, NULL, &iter)) {
+		gint i;
+		GtkTreePath *path;
+		DesktopItem *item;
+
+		path = gtk_tree_model_get_path(model, &iter);
+		i = gtk_tree_path_get_indices(path)[0];
+		item = ttb_base_get_entry(priv->sysapp_db, i);
+		ttb_fbase_add_entry(base, item->name, item->exec, item->icon);
+
+		gtk_list_store_append(apps, &iter);
+		gtk_list_store_set(apps, &iter,
+		                   COLUMN_NAME, item->name,
+		                   COLUMN_EXEC, item->exec,
+		                   COLUMN_ICON, item->icon,
+		                   -1);
+
+		gtk_tree_path_free(path);
+	}
 }
 
 static void
@@ -309,7 +388,7 @@ ui_gtk_prefs_class_init(UIGtkPrefsClass *klass)
 	g_object_class_install_property(gobject_class, UI_GTK_PREFS_PROP_BASE,
 	                                pspec);
 
-	klass->show_prefs = ui_gtk_prefs_show_prefs;
+	klass->show_prefs     = ui_gtk_prefs_show_prefs;
 	klass->set_pid_of_ttb = ui_gtk_prefs_set_pid_of_ttb;
 
 	g_type_class_add_private(klass, sizeof(UIGtkPrefsPrivate));

@@ -1,5 +1,13 @@
+2010-09-07  Mariusz Adamski <mariusz.adamski@gmail.com>
+	* src/ttb-base.c, src/ttb-base.h (ttb_base_get_entry): New method.
+	* src/ui-gtk-prefs.c: Add button and associated dialog.
+	* src/ui-gtk-prefs.c (cb_sysapp_chosen): New callback.
+
+	* src/ui-gtk-prefs.c: Code clean-up.
+	* src/ttb-base.c: Ditto.
+
 2010-09-03  Mariusz Adamski <mariusz.adamski@gmail.com>
-	* src/gtk-prefs-main, src/main.c, ttb-base.c: Moved directory creation
+	* src/gtk-prefs-main, src/main.c, src/ttb-base.c: Moved directory creation
 	to TTBBase::load_from_dir.
 	* src/ttb-base.c, src/ttb-base.h (add_entry, remove_entry,
 	set_entry_name, set_entry_exec, set_entry_icon): Moved to TTBFBase.

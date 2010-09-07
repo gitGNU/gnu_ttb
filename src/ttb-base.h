@@ -57,6 +57,7 @@ struct _TTBBaseClass
 	/* class members */
 	GSList* (*get_entries_list)(TTBBase *self);
 	void (*set_entries_list)(TTBBase *self, GSList *list);
+	DesktopItem* (*get_entry)(TTBBase *self, gint index);
 	void (*load_from_dir)(TTBBase *self, gchar *dirname); /* virtual */
 	void (*execute)(gchar *exec);
 	/* protected */
@@ -81,6 +82,9 @@ GType ttb_base_get_type(void);
 GSList* ttb_base_get_entries_list(TTBBase *self);
 
 void ttb_base_set_entries_list(TTBBase *self, GSList *list);
+
+DesktopItem*
+ttb_base_get_entry(TTBBase *self, gint index);
 
 void ttb_base_execute(gchar *exec);
 

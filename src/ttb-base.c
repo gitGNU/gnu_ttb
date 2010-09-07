@@ -198,57 +198,14 @@ ttb_base_set_entries_list(TTBBase *self, GSList *list)
 	self->priv->list = list;
 }
 
-static void
-set_entry(TTBBase *self, gint index, int field, gchar *value)
-{
-	TTBBasePrivate *priv = self->priv;
-	GSList *entry = g_slist_nth(priv->list, index);
-	g_return_if_fail(entry);
-
-	DesktopItem *item = entry->data;
-	switch (field) {
-	case FIELD_NAME:
-		if (item->name)
-			g_free(item->name);
-		item->name = g_strdup(value);
-		break;
-	case FIELD_EXEC:
-		if (item->exec)
-			g_free(item->exec);
-		item->exec = g_strdup(value);
-		break;
-	case FIELD_ICON:
-		if (item->icon)
-			g_free(item->icon);
-		item->icon = g_strdup(value);
-		break;
-	default:
-		g_warning("[TTBBase] Unknown field: %d\n", field);
-	}
-}
-
-void
-ttb_base_set_entry_name(TTBBase *self, gint index, gchar *name)
+DesktopItem*
+ttb_base_get_entry(TTBBase *self, gint index)
 {
 	g_return_if_fail(TTB_IS_BASE(self));
 
-	set_entry(self, index, FIELD_NAME, name);
-}
-
-void
-ttb_base_set_entry_exec(TTBBase *self, gint index, gchar *exec)
-{
-	g_return_if_fail(TTB_IS_BASE(self));
-
-	set_entry(self, index, FIELD_EXEC, exec);
-}
-
-void
-ttb_base_set_entry_icon(TTBBase *self, gint index, gchar *icon)
-{
-	g_return_if_fail(TTB_IS_BASE(self));
-
-	set_entry(self, index, FIELD_ICON, icon);
+	GSList *list = self->priv->list;
+	list = g_slist_nth(list, index);
+	return list->data;
 }
 
 void
@@ -267,6 +224,7 @@ ttb_base_class_init(TTBBaseClass *klass)
 
 	klass->get_entries_list    = ttb_base_get_entries_list;
 	klass->set_entries_list    = ttb_base_set_entries_list;
+	klass->get_entry           = ttb_base_get_entry;
 	klass->load_from_dir       = load_from_dir;
 	klass->execute             = ttb_base_execute;
 	klass->load_keys_from_file = ttb_base_load_keys_from_file;
