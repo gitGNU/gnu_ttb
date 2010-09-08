@@ -1,3 +1,9 @@
+2010-09-08  Mariusz Adamski <mariusz.adamski@gmail.com>
+	* src/ui-gtk-prefs.c (setup_icon_view): New function.
+	* src/ui-gtk-prefs.c (cb_icon_editing_started, cb_icon_chosen,
+	cb_icon_clear): New callbacks.
+	* src/ui-gtk-prefs.c (cb_icon_edited): Deleted.
+
 2010-09-07  Mariusz Adamski <mariusz.adamski@gmail.com>
 	* src/ttb-base.c, src/ttb-base.h (ttb_base_get_entry): New method.
 	* src/ui-gtk-prefs.c: Add button and associated dialog.

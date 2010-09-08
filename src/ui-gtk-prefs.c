@@ -34,14 +34,17 @@ G_DEFINE_TYPE(UIGtkPrefs, ui_gtk_prefs, G_TYPE_OBJECT)
 
 struct _UIGtkPrefsPrivate
 {
-	TTBFBase *base;
-	TTBBase *sysapp_db;
-	GtkWidget *window;
-	GtkWidget *apply_button;
+	TTBFBase    *base;
+	TTBBase     *sysapp_db;
+	GtkWidget   *window;
+	GtkWidget   *apply_button;
 	GtkTreeView *tree;
-	GtkWidget *app_chooser;
+	GtkWidget   *app_chooser;
 	GtkTreeView *sysapp_tree;
-	int pid_of_ttb;
+	GtkWidget   *icon_chooser;
+	GtkIconView *icon_view;
+	GList       *icon_list;
+	int          pid_of_ttb;
 };
 
 enum {
@@ -83,6 +86,7 @@ ui_gtk_prefs_init(UIGtkPrefs *self)
 	priv->sysapp_db   = NULL;
 	priv->window      = NULL;
 	priv->app_chooser = NULL;
+	priv->icon_list   = NULL;
 	priv->pid_of_ttb  = 0;
 }
 
@@ -97,9 +101,18 @@ static void
 ui_gtk_prefs_finalize(GObject *gobject)
 {
 	UIGtkPrefs *self = UI_GTK_PREFS(gobject);
+	UIGtkPrefsPrivate *priv = self->priv;
 
-	if (self->priv->sysapp_db)
+	if (priv->sysapp_db)
 		g_object_unref(self->priv->sysapp_db);
+	if (priv->icon_list) {
+		GList *list = priv->icon_list;
+		while (list) {
+			g_free(list->data);
+			list = g_list_next(list);
+		}
+		g_list_free(priv->icon_list);
+	}
 
 	/* Chain up to the parent class */
 	G_OBJECT_CLASS(ui_gtk_prefs_parent_class)->finalize(gobject);
@@ -142,6 +155,33 @@ setup_sysapp_tree(TTBBase *base, GtkTreeView *tree)
 	}
 }
 
+static void
+setup_icon_view(UIGtkPrefs *self, GtkIconView *view)
+{
+	UIGtkPrefsPrivate *priv = self->priv;
+
+	GtkTreeIter iter;
+	GtkListStore *store = GTK_LIST_STORE(gtk_icon_view_get_model(view));
+	GtkIconTheme *theme = gtk_icon_theme_get_default();
+	GList *list = gtk_icon_theme_list_icons(theme, "Applications");
+
+	if (priv->icon_list) {
+		GList *l = priv->icon_list;
+		while (l) {
+			g_free(l->data);
+			l = g_list_next(l);
+		}
+		g_list_free(priv->icon_list);
+	}
+
+	priv->icon_list = list;
+	while (list) {
+		gtk_list_store_append(store, &iter);
+		gtk_list_store_set(store, &iter, 0, list->data, -1);
+		list = g_list_next(list);
+	}
+}
+
 void
 ui_gtk_prefs_show_prefs(UIGtkPrefs *self)
 {
@@ -165,13 +205,18 @@ ui_gtk_prefs_show_prefs(UIGtkPrefs *self)
 	priv->window = GTK_WIDGET(gtk_builder_get_object(builder,
 	                                                 "prefs_window"));
 	priv->apply_button = GTK_WIDGET(gtk_builder_get_object(builder,
-	                                                     "apply_button"));
+	                                                      "apply_button"));
 	priv->tree = GTK_TREE_VIEW(gtk_builder_get_object(builder,
 	                                                  "apps_treeview"));
 	priv->app_chooser = GTK_WIDGET(gtk_builder_get_object(builder,
 	                                                      "app_chooser"));
 	priv->sysapp_tree = GTK_TREE_VIEW(gtk_builder_get_object(builder,
-	                                                      "sysapp_tree"));
+	                                                       "sysapp_tree"));
+	priv->icon_chooser = GTK_WIDGET(gtk_builder_get_object(builder,
+	                                                      "icon_chooser"));
+	priv->icon_view = GTK_ICON_VIEW(gtk_builder_get_object(builder,
+	                                                       "icon_view"));
+
 	setup_tree(TTB_BASE(priv->base), priv->tree);
 
 	gtk_builder_connect_signals(builder, self);
@@ -241,13 +286,83 @@ cb_exec_edited(GtkCellRendererText *cell, gchar *path_string, gchar *new_text,
 }
 
 G_MODULE_EXPORT void
-cb_icon_edited(GtkCellRendererText *cell, gchar *path_string, gchar *new_text,
-               gpointer data)
+cb_icon_editing_started(GtkCellRenderer *cell,
+                        GtkCellEditable *editable,
+                        const gchar     *path,
+                        gpointer         data)
 {
 	UIGtkPrefs *self = UI_GTK_PREFS(data);
 	UIGtkPrefsPrivate *priv = self->priv;
-	ui_gtk_prefs_set_cell_text(self, COLUMN_ICON, path_string, new_text);
-	ttb_fbase_set_entry_icon(priv->base, atoi(path_string), new_text);
+
+	if (!priv->icon_list)
+		setup_icon_view(self, priv->icon_view);
+
+	gtk_widget_show(priv->icon_chooser);
+}
+
+G_MODULE_EXPORT void
+cb_icon_chosen(GtkWidget *widget, gpointer *data)
+{
+	UIGtkPrefs *self = UI_GTK_PREFS(data);
+	UIGtkPrefsPrivate *priv = self->priv;
+
+	GtkTreeIter iter;
+	GtkIconView *view = priv->icon_view;
+	GtkTreeModel *model = gtk_tree_view_get_model(priv->tree);
+	GtkListStore *apps = GTK_LIST_STORE(model);
+	GtkTreePath *path;
+	GtkTreeSelection *selection = gtk_tree_view_get_selection(priv->tree);
+	TTBFBase *base = priv->base;
+
+	gtk_widget_hide(priv->icon_chooser);
+
+	if (!gtk_icon_view_get_cursor(view, &path, NULL))
+		return;
+
+	if (gtk_tree_selection_get_selected(selection, NULL, &iter)) {
+		gint i = gtk_tree_path_get_indices(path)[0];
+		GList *list = g_list_nth(priv->icon_list, i);
+		gtk_tree_path_free(path);
+
+		path = gtk_tree_model_get_path(model, &iter);
+		i = gtk_tree_path_get_indices(path)[0];
+		ttb_fbase_set_entry_icon(base, i, list->data);
+
+		gtk_list_store_set(apps, &iter,
+		                   COLUMN_ICON, list->data,
+		                   -1);
+		gtk_tree_path_free(path);
+	}
+}
+
+G_MODULE_EXPORT void
+cb_icon_clear(GtkWidget *widget, gpointer *data)
+{
+	UIGtkPrefs *self = UI_GTK_PREFS(data);
+	UIGtkPrefsPrivate *priv = self->priv;
+
+	GtkTreeIter iter;
+	GtkIconView *view = priv->icon_view;
+	GtkTreeModel *model = gtk_tree_view_get_model(priv->tree);
+	GtkListStore *apps = GTK_LIST_STORE(model);
+	GtkTreeSelection *selection = gtk_tree_view_get_selection(priv->tree);
+	TTBFBase *base = priv->base;
+
+	gtk_widget_hide(priv->icon_chooser);
+
+	if (gtk_tree_selection_get_selected(selection, NULL, &iter)) {
+		gint i;
+		GtkTreePath *path;
+
+		path = gtk_tree_model_get_path(model, &iter);
+		i = gtk_tree_path_get_indices(path)[0];
+		ttb_fbase_set_entry_icon(base, i, "");
+
+		gtk_list_store_set(apps, &iter,
+		                   COLUMN_ICON, "",
+		                   -1);
+		gtk_tree_path_free(path);
+	}
 }
 
 G_MODULE_EXPORT void
@@ -281,8 +396,7 @@ cb_add_clicked(GtkWidget *widget, gpointer data)
 
 	if (priv->sysapp_db == NULL) {
 		priv->sysapp_db = g_object_new(TTB_TYPE_BASE, NULL);
-		ttb_base_load_from_dir(priv->sysapp_db,
-		                       APP_DIR);
+		ttb_base_load_from_dir(priv->sysapp_db, APP_DIR);
 		setup_sysapp_tree(priv->sysapp_db, priv->sysapp_tree);
 	}
 
