@@ -1,3 +1,12 @@
+2010-09-11  Mariusz Adamski <mariusz.adamski@gmail.com>
+	* src/glade/prefs.ui: Migrate all windows to GtkDialog.
+	* src/ui-gtk-prefs.c, src/ui-gtk-prefs.h
+	(ui_gtk_prefs_set_busy_cursor): New function.
+	* src/ui-gtk-prefs.c (cb_icon_editing_started): Setting busy cursor
+	while making icon list.
+	* src/ui-gtk-prefs.c (cb_add_clicked): Setting busy cursor while
+	making application list.
+
 2010-09-08  Mariusz Adamski <mariusz.adamski@gmail.com>
 	* src/ui-gtk-prefs.c (setup_icon_view): New function.
 	* src/ui-gtk-prefs.c (cb_icon_editing_started, cb_icon_chosen,

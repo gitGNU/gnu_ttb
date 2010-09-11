@@ -17,7 +17,7 @@
 
 bin_PROGRAMS = ttb ttb-prefs
 
-nobase_dist_pkgdata_DATA = glade/prefs.ui
+nobase_dist_pkgdata_DATA = glade/prefs.glade
 
 AM_CFLAGS = $(deps_CFLAGS)
 
@@ -53,6 +53,7 @@ ttb-paths.h: Makefile
 	echo ''; \
 	echo '#define datadir "$(pkgdatadir)/"'; \
 	echo '#define bindir "$(bindir)/"'; \
+	echo '#define LOCALEDIR "$(localedir)/"'; \
 	echo '#endif /* TTB_PATHS_H */' \
 	) >$@
 

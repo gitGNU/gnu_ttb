@@ -69,6 +69,8 @@ void ui_gtk_prefs_show_prefs(UIGtkPrefs *self);
 
 void ui_gtk_prefs_set_pid_of_ttb(UIGtkPrefs *self, int pid);
 
+void ui_gtk_prefs_set_busy_cursor(GtkWidget *widget, gboolean busy);
+
 G_BEGIN_DECLS
 
 #endif /* UI_GTK_PREFS_H */
