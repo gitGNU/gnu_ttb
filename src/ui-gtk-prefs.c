@@ -165,6 +165,9 @@ setup_icon_view(UIGtkPrefs *self, GtkIconView *view)
 	GtkIconTheme *theme = gtk_icon_theme_get_default();
 	GList *list = gtk_icon_theme_list_icons(theme, "Applications");
 
+	while (gtk_events_pending())
+		gtk_main_iteration();
+
 	if (priv->icon_list) {
 		GList *l = priv->icon_list;
 		while (l) {
@@ -180,6 +183,9 @@ setup_icon_view(UIGtkPrefs *self, GtkIconView *view)
 		gtk_list_store_set(store, &iter, 0, list->data, -1);
 		list = g_list_next(list);
 	}
+
+	while (gtk_events_pending())
+		gtk_main_iteration();
 }
 
 void
@@ -231,6 +237,29 @@ ui_gtk_prefs_set_pid_of_ttb(UIGtkPrefs *self, int pid)
 	g_return_if_fail(UI_IS_GTK_PREFS(self));
 
 	self->priv->pid_of_ttb = pid;
+}
+
+void
+ui_gtk_prefs_set_busy_cursor(GtkWidget *widget, gboolean busy)
+{
+	GdkDisplay *display;
+	GdkCursor  *cursor;
+
+	if (!gtk_widget_get_realized(widget))
+		return;
+
+	display = gtk_widget_get_display(widget);
+
+	if (busy)
+		cursor = gdk_cursor_new_for_display(display, GDK_WATCH);
+	else
+		cursor = NULL;
+
+	gdk_window_set_cursor(gtk_widget_get_window(widget), cursor);
+	gdk_display_flush(display);
+
+	if (cursor)
+		gdk_cursor_unref(cursor);
 }
 
 static void
@@ -294,10 +323,14 @@ cb_icon_editing_started(GtkCellRenderer *cell,
 	UIGtkPrefs *self = UI_GTK_PREFS(data);
 	UIGtkPrefsPrivate *priv = self->priv;
 
-	if (!priv->icon_list)
-		setup_icon_view(self, priv->icon_view);
+	gtk_widget_show_now(priv->icon_chooser);
 
-	gtk_widget_show(priv->icon_chooser);
+	if (!priv->icon_list) {
+		ui_gtk_prefs_set_busy_cursor(GTK_WIDGET(priv->icon_chooser), TRUE);
+		setup_icon_view(self, priv->icon_view);
+		ui_gtk_prefs_set_busy_cursor(GTK_WIDGET(priv->icon_chooser), FALSE);
+	}
+
 }
 
 G_MODULE_EXPORT void
@@ -395,9 +428,11 @@ cb_add_clicked(GtkWidget *widget, gpointer data)
 	UIGtkPrefsPrivate *priv = self->priv;
 
 	if (priv->sysapp_db == NULL) {
+		ui_gtk_prefs_set_busy_cursor(GTK_WIDGET(priv->window), TRUE);
 		priv->sysapp_db = g_object_new(TTB_TYPE_BASE, NULL);
 		ttb_base_load_from_dir(priv->sysapp_db, APP_DIR);
 		setup_sysapp_tree(priv->sysapp_db, priv->sysapp_tree);
+		ui_gtk_prefs_set_busy_cursor(GTK_WIDGET(priv->window), FALSE);
 	}
 
 	gtk_widget_show(priv->app_chooser);
