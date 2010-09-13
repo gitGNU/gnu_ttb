@@ -1,3 +1,5 @@
 #!/bin/sh
+# Run this to setup the sources
 set -x
 autoreconf --force --install
+intltoolize --force --automake
