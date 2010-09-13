@@ -1,4 +1,11 @@
 2010-09-13  Mariusz Adamski <mariusz.adamski@gmail.com>
+	* bootstrap: Added intltoolize to generate po/Makefile.in.in and m4
+	files.
+	* configure.ac: Added AM_GNU_GETTEXT_VERSION.
+	* po/Makefile.in.in: Deleted
+	* m4: Deleted.
+
+2010-09-13  Mariusz Adamski <mariusz.adamski@gmail.com>
 	* src/ui-gtk-prefs.c: Gettext initialisation.
 	* src/Makefile.am: Added LOCALEDIR to ttb-paths.h generation.
 	* ABOUT-NLS: New file, from gettext-0.17.
