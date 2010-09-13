@@ -17,6 +17,8 @@ AC_INIT([ttb], [0.0.1], [mariusz.adamski@gmail.com])
 AM_INIT_AUTOMAKE([gnu dist-bzip2])
 AC_CONFIG_SRCDIR([src/main.c])
 AC_CONFIG_HEADERS([config.h])
+AM_GNU_GETTEXT([external])
+IT_PROG_INTLTOOL
 
 AC_MSG_CHECKING(whether to enable debugging)
 debug_default="no"
@@ -52,8 +54,10 @@ AC_CHECK_HEADERS([string.h])
 # Checks for typedefs, structures, and compiler characteristics.
 
 # Checks for library functions.
-
-AC_CONFIG_FILES([Makefile
+AC_SUBST(GETTEXT_PACKAGE, ttb-${VERSION})
+AC_DEFINE_UNQUOTED(GETTEXT_PACKAGE, "$GETTEXT_PACKAGE",
+        [The package name, for gettext])
+AC_CONFIG_FILES([Makefile po/Makefile.in
                  src/Makefile])
 AC_OUTPUT
 
