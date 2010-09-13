@@ -1,5 +1,10 @@
+2010-09-13  Mariusz Adamski  <mariusz.adamski@gmail.com>
+	* Makevars: New file.
+	* LINGUAS: New file.
+	* pl.po: New file.
+	* eo.po: New file.
+	
 2010-09-11  gettextize  <bug-gnu-gettext@gnu.org>
-
 	* Makefile.in.in: New file, from gettext-0.17.
 	* boldquot.sed: New file, from gettext-0.17.
 	* en@boldquot.header: New file, from gettext-0.17.

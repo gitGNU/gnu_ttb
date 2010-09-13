@@ -1,0 +1,43 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: mariusz.adamski@gmail.com\n"
+"POT-Creation-Date: 2010-09-11 17:20+0200\n"
+"PO-Revision-Date: 2010-09-11 17:29+0100\n"
+"Last-Translator: Mariusz Adamski <mariusz.adamski@gmail.com>\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Poedit-Language: Polish\n"
+"X-Poedit-Country: POLAND\n"
+
+#: ../src/glade/prefs.glade.h:1
+msgid "Choose application"
+msgstr "Wybierz aplikację"
+
+#: ../src/glade/prefs.glade.h:2
+msgid "Choose icon"
+msgstr "Wybierz ikonę"
+
+#: ../src/glade/prefs.glade.h:3
+msgid "Exec"
+msgstr "Program"
+
+#: ../src/glade/prefs.glade.h:4
+msgid "Icon"
+msgstr "Ikona"
+
+#: ../src/glade/prefs.glade.h:5
+msgid "Name"
+msgstr "Nazwa"
+
+#: ../src/glade/prefs.glade.h:6
+msgid "TTB Preferences"
+msgstr "TTB Preferencje"
+

@@ -1,5 +1,10 @@
-2010-09-11  gettextize  <bug-gnu-gettext@gnu.org>
+2010-09-13  Mariusz Adamski <mariusz.adamski@gmail.com>
+	* src/ui-gtk-prefs.c: Gettext initialisation.
+	* src/Makefile.am: Added LOCALEDIR to ttb-paths.h generation.
+	* ABOUT-NLS: New file, from gettext-0.17.
+	* config.rpath: New file, from gettext-0.17.
 
+2010-09-11  gettextize  <bug-gnu-gettext@gnu.org>
 	* Makefile.am (SUBDIRS): Add po.
 	(ACLOCAL_AMFLAGS): New variable.
 	(EXTRA_DIST): New variable.

@@ -21,6 +21,8 @@
 #include <stdio.h>
 #include "ttb-fbase.h"
 #include "ui-gtk-prefs.h"
+#include "config.h"
+#include "ttb-paths.h"
 
 int main(int argc, char **argv)
 {
@@ -32,6 +34,12 @@ int main(int argc, char **argv)
 	TTBBase *base = g_object_new(TTB_TYPE_FBASE, NULL);
 	ttb_base_load_from_dir(base, dirname);
 	g_free(dirname);
+
+	#ifdef ENABLE_NLS
+	/* Setting up gettext */
+	bindtextdomain(GETTEXT_PACKAGE, LOCALEDIR);
+	textdomain(GETTEXT_PACKAGE);
+	#endif /* ENABLE_NLS */
 
 	gtk_init(&argc, &argv);
 

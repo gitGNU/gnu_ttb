@@ -53,6 +53,7 @@ ttb-paths.h: Makefile
 	echo ''; \
 	echo '#define datadir "$(pkgdatadir)/"'; \
 	echo '#define bindir "$(bindir)/"'; \
+	echo '#define LOCALEDIR "$(localedir)/"'; \
 	echo '#endif /* TTB_PATHS_H */' \
 	) >$@
 
