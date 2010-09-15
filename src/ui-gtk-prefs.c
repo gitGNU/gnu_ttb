@@ -26,6 +26,7 @@
 
 #define UI_FILE datadir "glade/prefs.glade"
 #define APP_DIR "/usr/share/applications"
+#define TTB_PATH bindir "ttb"
 
 #define UI_GTK_PREFS_GET_PRIVATE(obj) (G_TYPE_INSTANCE_GET_PRIVATE((obj), \
                                        UI_TYPE_GTK_PREFS, UIGtkPrefsPrivate))
@@ -284,14 +285,16 @@ restart_ttb(UIGtkPrefs *self)
 	if (priv->pid_of_ttb == 0)
 		return;
 	
-	char *ttb = bindir "ttb";
+	gchar *cmdv[] = {TTB_PATH, NULL};
 	GPid new_pid;
 
 	/* Not portable */
 	kill(priv->pid_of_ttb, SIGTERM);
 
-	g_spawn_async(NULL, &ttb, NULL, 0, NULL, NULL, &new_pid, NULL);
-	priv->pid_of_ttb = new_pid;
+	if (g_spawn_async(NULL, cmdv, NULL, 0, NULL, NULL, &new_pid, NULL))
+		priv->pid_of_ttb = new_pid;
+	else
+		priv->pid_of_ttb = 0;
 }
 
 G_MODULE_EXPORT void

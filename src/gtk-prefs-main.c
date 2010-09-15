@@ -26,14 +26,15 @@
 
 int main(int argc, char **argv)
 {
-	g_type_init();
-
+	int pid;
+	gchar buf[512];
 	gchar *dirname = g_build_filename(g_get_home_dir(),
 	                                  ".local/share/applications/ttb",
 	                                  NULL);
-	TTBBase *base = g_object_new(TTB_TYPE_FBASE, NULL);
-	ttb_base_load_from_dir(base, dirname);
-	g_free(dirname);
+	TTBBase *base;
+	UIGtkPrefs *prefs;
+
+	g_type_init();
 
 	#ifdef ENABLE_NLS
 	/* Setting up gettext */
@@ -43,12 +44,16 @@ int main(int argc, char **argv)
 
 	gtk_init(&argc, &argv);
 
-	UIGtkPrefs *prefs = g_object_new(UI_TYPE_GTK_PREFS, "base", base,
-	                                 NULL);
-	if (argc == 2) {
-		int pid = atoi(argv[1]);
+	base = g_object_new(TTB_TYPE_FBASE, NULL);
+	ttb_base_load_from_dir(base, dirname);
+	g_free(dirname);
+
+	prefs = g_object_new(UI_TYPE_GTK_PREFS, "base", base, NULL);
+
+	/* Check it something is piped in; might be not portable */
+	if ((isatty(fileno(stdin)) == 0) && (fscanf(stdin, "%d", &pid) > 0))
 		ui_gtk_prefs_set_pid_of_ttb(prefs, pid);
-	}
+
 	ui_gtk_prefs_show_prefs(prefs);
 
 	gtk_main();

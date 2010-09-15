@@ -1,3 +1,12 @@
+2010-09-15 Mariusz Adamski <mariusz.adamski@gmail.com>
+	* src/ui-gtk.c (cb_add_button_clicked): Renamed to more appropriate
+	cb_prefs_button_clicked.
+	* src/ui-gtk.c (cb_prefs_button_clicked): Using pipe instead of
+	arguments.
+	* src/gtk-prefs-main.c: Ditto.
+	* src/ui-gtk-prefs.c (restart_ttb): Corrected spawning new ttb
+	process.
+
 2010-09-14  Mariusz Adamski <mariusz.adamski@gmail.com>
 	* bootstrap: Added intltoolize to generate po/Makefile.in.in and m4
 	files.

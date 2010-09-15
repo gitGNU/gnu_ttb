@@ -29,6 +29,8 @@
 
 G_DEFINE_TYPE(UIGtk, ui_gtk, TTB_TYPE_UI)
 
+#define PREFS_PATH bindir "ttb-prefs"
+
 struct _UIGtkPrivate
 {
 	GtkWidget *window;
@@ -63,14 +65,20 @@ cb_button_clicked(GtkWidget *widget, gpointer data)
 }
 
 static void
-cb_add_button_clicked(GtkWidget *widget, gpointer data)
+cb_prefs_button_clicked(GtkWidget *widget, gpointer data)
 {
 	/* Not portable */
 	pid_t pid = getpid();
+	char *cmdv[] = {PREFS_PATH, NULL};
+	gint stdin_fd;
 
-	gchar *exec = g_strdup_printf(bindir "ttb-prefs %d", pid);
-	ttb_base_execute(exec);
-	g_free(exec);
+	if (g_spawn_async_with_pipes(NULL, cmdv, NULL, 0, NULL, NULL, NULL,
+	                             &stdin_fd, NULL, NULL, NULL))
+	{
+		gchar *msg = g_strdup_printf("%d", pid);
+		g_warn_if_fail(write(stdin_fd, msg, strlen(msg)) != -1);
+		close(stdin_fd);
+	}
 }
 
 static void
@@ -120,8 +128,8 @@ ui_gtk_rebuild(TTBUI *self)
 	                     gtk_image_new_from_stock(GTK_STOCK_PREFERENCES,
 	                                              GTK_ICON_SIZE_BUTTON));
 	gtk_widget_set_tooltip_text(button, "Preferences");
-	g_signal_connect(button, "clicked", G_CALLBACK(cb_add_button_clicked),
-	                 self);
+	g_signal_connect(button, "clicked",
+	                 G_CALLBACK(cb_prefs_button_clicked), self);
 	gtk_box_pack_start(GTK_BOX(hbox), button, TRUE, FALSE, 0);
 
 	gtk_window_set_keep_above(GTK_WINDOW(priv->window), TRUE);
