@@ -1,3 +1,6 @@
+2010-09-18 Mariusz Adamski <mariusz.adamski@gmail.com>
+	* src/glade/fixgladefiles.sh: Fixing all files in a loop.
+
 2010-09-16 Mariusz Adamski <mariusz.adamski@gmail.com>
 	* configure.ac: Made '--enable-debug' consistent.
 
