@@ -1,4 +1,7 @@
 2010-09-21 Mariusz Adamski <mariusz.adamski@gmail.com>
+	* bootstrap: Improved output.
+
+2010-09-21 Mariusz Adamski <mariusz.adamski@gmail.com>
 	* src/ttb-app.c, src/ttb-app.h: New files.
 	* src/ttb-module.c, src/ttb-module.h: Ditto.
 	* src/ttb-prefs.c, src/ttb-prefs.h: Ditto.

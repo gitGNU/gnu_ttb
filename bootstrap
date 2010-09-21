@@ -1,8 +1,18 @@
 #!/bin/sh
 # Run this to setup the sources
+: ${AUTORECONF=autoreconf --force --install}
+: ${INTLTOOLIZE=autopoint --force && intltoolize --force --automake}
 : ${LIBTOOLIZE=libtoolize --force --copy}
-set -x
 
+func_echo()
+{
+	echo
+	echo -e "\033[0;32m*\033[0m $@"
+	echo
+}
+
+func_echo "Running: $LIBTOOLIZE"
 $LIBTOOLIZE
-LIBTOOLIZE=true autoreconf --force --install
-intltoolize --force --automake
+
+func_echo "Running: $AUTORECONF"
+LIBTOOLIZE=true AUTOPOINT=$INTLTOOLIZE $AUTORECONF
