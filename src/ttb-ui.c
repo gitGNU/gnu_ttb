@@ -69,6 +69,9 @@ ttb_ui_dispose(GObject *gobject)
 static void
 ttb_ui_finalize(GObject *gobject)
 {
+	TTBUI *self = TTB_UI(gobject);
+	g_object_unref(self->priv->base);
+
 	/* Chain up to the parent class */
 	G_OBJECT_CLASS(ttb_ui_parent_class)->finalize(gobject);
 }

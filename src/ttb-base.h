@@ -58,7 +58,7 @@ struct _TTBBaseClass
 	GSList* (*get_entries_list)(TTBBase *self);
 	void (*set_entries_list)(TTBBase *self, GSList *list);
 	DesktopItem* (*get_entry)(TTBBase *self, gint index);
-	void (*load_from_dir)(TTBBase *self, gchar *dirname); /* virtual */
+	void (*load_from_dir)(TTBBase *self, const gchar *dirname);
 	void (*execute)(gchar *exec);
 	/* protected */
 	gboolean (*load_keys_from_file)(TTBBase *self, gchar *fname,
@@ -88,7 +88,7 @@ ttb_base_get_entry(TTBBase *self, gint index);
 
 void ttb_base_execute(gchar *exec);
 
-void ttb_base_load_from_dir(TTBBase *self, gchar *dirname);
+void ttb_base_load_from_dir(TTBBase *self, const gchar *dirname);
 
 G_END_DECLS
 

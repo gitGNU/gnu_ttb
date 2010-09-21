@@ -1,3 +1,25 @@
+2010-09-21 Mariusz Adamski <mariusz.adamski@gmail.com>
+	* src/ttb-app.c, src/ttb-app.h: New files.
+	* src/ttb-module.c, src/ttb-module.h: Ditto.
+	* src/ttb-prefs.c, src/ttb-prefs.h: Ditto.
+	* src/gtk-prefs-main.c: Deleted.
+	* src/ui-gtk-prefs.c: Moved code to src/gtk-prefs-module.c.
+	* src/ui-gtk-prefs.h: Moved code to src/gtk-prefs-module.h.
+	* src/bootstrap: Added libtoolize.
+	* configure.ac: Ditto.
+	* src/Makefile.am: Removed everything concerned with ttb-prefs, added
+	gtk-prefs module.
+	* src/main.c: Moved some code to ttb-app.c.
+	* src/ttb-ui.c: TTBUI is now responsible for releasing TTBBase
+	instance.
+	* src/ui-gtk.c: Now gets prefs dialog from module instead of running
+	ttb-prefs.
+
+	* src/ttb-base.c, src/ttb-base.g (ttb_base_load_from_dir): Changed
+	char* to const char*.
+	* src/ttb-fbase.c (load_from_dir): Ditto.
+	
+
 2010-09-18 Mariusz Adamski <mariusz.adamski@gmail.com>
 	* src/glade/fixgladefiles.sh: Fixing all files in a loop.
 

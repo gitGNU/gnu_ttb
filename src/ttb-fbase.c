@@ -104,7 +104,7 @@ load_keys_from_file(TTBBase *self, gchar *fname, GKeyFile *kfile)
 }
 
 static void
-load_from_dir(TTBBase *self, gchar *dirname)
+load_from_dir(TTBBase *self, const gchar *dirname)
 {
 	g_return_if_fail(TTB_IS_FBASE(self));
 

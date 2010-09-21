@@ -18,7 +18,10 @@
  *   along with TabletToolbox.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "ui-gtk-prefs.h"
+#include <config.h>
+
+#include "gtk-prefs-module.h"
+
 #include <gtk/gtk.h>
 #include <unistd.h>
 #include "ttb-fbase.h"
@@ -30,8 +33,6 @@
 
 #define UI_GTK_PREFS_GET_PRIVATE(obj) (G_TYPE_INSTANCE_GET_PRIVATE((obj), \
                                        UI_TYPE_GTK_PREFS, UIGtkPrefsPrivate))
-
-G_DEFINE_TYPE(UIGtkPrefs, ui_gtk_prefs, G_TYPE_OBJECT)
 
 struct _UIGtkPrefsPrivate
 {
@@ -45,7 +46,6 @@ struct _UIGtkPrefsPrivate
 	GtkWidget   *icon_chooser;
 	GtkIconView *icon_view;
 	GList       *icon_list;
-	int          pid_of_ttb;
 };
 
 enum {
@@ -59,36 +59,32 @@ enum {
 	COLUMN_ICON
 };
 
-static void
-ui_gtk_prefs_set_property(GObject      *object,
-                          guint         property_id,
-                          const GValue *value,
-                          GParamSpec   *pspec)
-{
-	UIGtkPrefs *self = UI_GTK_PREFS(object);
-	UIGtkPrefsPrivate *priv = self->priv;
+static GType          ui_gtk_prefs_type         = 0;
+static TTBPrefsClass *ui_gtk_prefs_parent_class = NULL;
 
-	switch (property_id) {
-	case UI_GTK_PREFS_PROP_BASE:
-		priv->base = TTB_FBASE(g_value_get_object(value));
-		break;
-	default:
-		G_OBJECT_WARN_INVALID_PROPERTY_ID(object, property_id, pspec);
-		break;
-	}
+G_MODULE_EXPORT void
+ttb_module_load(TTBModule *module)
+{
+	ui_gtk_prefs_get_type(G_TYPE_MODULE(module));
+}
+
+G_MODULE_EXPORT void
+ttb_module_unload(TTBModule *module)
+{
 }
 
 static void
 ui_gtk_prefs_init(UIGtkPrefs *self)
 {
+	g_debug("[UIGtkPrefs::init]");
 	self->priv = UI_GTK_PREFS_GET_PRIVATE(self);
 	UIGtkPrefsPrivate *priv = self->priv;
 
+	priv->base        = NULL;
 	priv->sysapp_db   = NULL;
 	priv->window      = NULL;
 	priv->app_chooser = NULL;
 	priv->icon_list   = NULL;
-	priv->pid_of_ttb  = 0;
 }
 
 static void
@@ -104,8 +100,10 @@ ui_gtk_prefs_finalize(GObject *gobject)
 	UIGtkPrefs *self = UI_GTK_PREFS(gobject);
 	UIGtkPrefsPrivate *priv = self->priv;
 
+	if (priv->base)
+		g_object_unref(priv->base);
 	if (priv->sysapp_db)
-		g_object_unref(self->priv->sysapp_db);
+		g_object_unref(priv->sysapp_db);
 	if (priv->icon_list) {
 		GList *list = priv->icon_list;
 		while (list) {
@@ -122,6 +120,7 @@ ui_gtk_prefs_finalize(GObject *gobject)
 static void
 setup_tree(TTBBase *base, GtkTreeView *tree)
 {
+	g_return_if_fail(base);
 	GtkTreeIter iter;
 	GSList *list = ttb_base_get_entries_list(base);
 	GtkListStore *store = GTK_LIST_STORE(gtk_tree_view_get_model(tree));
@@ -189,15 +188,16 @@ setup_icon_view(UIGtkPrefs *self, GtkIconView *view)
 		gtk_main_iteration();
 }
 
-void
-ui_gtk_prefs_show_prefs(UIGtkPrefs *self)
+gpointer
+ui_gtk_prefs_get_widget(TTBPrefs *prefs)
 {
-	g_return_if_fail(UI_IS_GTK_PREFS(self));
+	g_return_if_fail(UI_IS_GTK_PREFS(prefs));
+
+	UIGtkPrefs *self = UI_GTK_PREFS(prefs);
 
 	UIGtkPrefsPrivate *priv = self->priv;
 	if (priv->window) {
-		gtk_widget_show(GTK_WIDGET(priv->window));
-		return;
+		return priv->window;
 	}
 
 	GtkBuilder *builder;
@@ -224,20 +224,16 @@ ui_gtk_prefs_show_prefs(UIGtkPrefs *self)
 	priv->icon_view = GTK_ICON_VIEW(gtk_builder_get_object(builder,
 	                                                       "icon_view"));
 
+	gtk_window_set_transient_for(GTK_WINDOW(priv->app_chooser),
+	                             GTK_WINDOW(priv->window));
+	gtk_window_set_transient_for(GTK_WINDOW(priv->icon_chooser),
+	                             GTK_WINDOW(priv->window));
 	setup_tree(TTB_BASE(priv->base), priv->tree);
 
 	gtk_builder_connect_signals(builder, self);
 
 	g_object_unref(G_OBJECT(builder));
-	gtk_widget_show(GTK_WIDGET(priv->window));
-}
-
-void
-ui_gtk_prefs_set_pid_of_ttb(UIGtkPrefs *self, int pid)
-{
-	g_return_if_fail(UI_IS_GTK_PREFS(self));
-
-	self->priv->pid_of_ttb = pid;
+	return priv->window;
 }
 
 void
@@ -282,19 +278,7 @@ restart_ttb(UIGtkPrefs *self)
 {
 	UIGtkPrefsPrivate *priv = self->priv;
 
-	if (priv->pid_of_ttb == 0)
-		return;
-	
-	gchar *cmdv[] = {TTB_PATH, NULL};
-	GPid new_pid;
-
-	/* Not portable */
-	kill(priv->pid_of_ttb, SIGTERM);
-
-	if (g_spawn_async(NULL, cmdv, NULL, 0, NULL, NULL, &new_pid, NULL))
-		priv->pid_of_ttb = new_pid;
-	else
-		priv->pid_of_ttb = 0;
+	g_debug("Not implemented yet");
 }
 
 G_MODULE_EXPORT void
@@ -421,7 +405,7 @@ cb_ok_clicked(GtkWidget *widget, gpointer data)
 	UIGtkPrefsPrivate *priv = self->priv;
 
 	cb_apply_clicked(priv->apply_button, data);
-	gtk_main_quit();
+	gtk_widget_hide(priv->window);
 }
 
 G_MODULE_EXPORT void
@@ -438,6 +422,7 @@ cb_add_clicked(GtkWidget *widget, gpointer data)
 		ui_gtk_prefs_set_busy_cursor(GTK_WIDGET(priv->window), FALSE);
 	}
 
+	gtk_widget_realize(priv->app_chooser);
 	gtk_widget_show(priv->app_chooser);
 }
 
@@ -525,24 +510,58 @@ cb_sysapp_chosen(GtkWidget *widget, gpointer *data)
 }
 
 static void
+add_dir(TTBPrefs *prefs, const char *dirname)
+{
+	g_return_if_fail(UI_IS_GTK_PREFS(prefs));
+
+	UIGtkPrefs *self = UI_GTK_PREFS(prefs);
+	UIGtkPrefsPrivate *priv = self->priv;
+
+	if (!priv->base)
+		priv->base = g_object_new(TTB_TYPE_FBASE, NULL);
+	ttb_base_load_from_dir(TTB_BASE(priv->base), dirname);
+}
+
+static void
 ui_gtk_prefs_class_init(UIGtkPrefsClass *klass)
 {
-	GObjectClass *gobject_class = G_OBJECT_CLASS(klass);
+	GObjectClass  *gobject_class = G_OBJECT_CLASS(klass);
+	TTBPrefsClass *prefs_class   = TTB_PREFS_CLASS(klass);
+
+	ui_gtk_prefs_parent_class = g_type_class_peek_parent(klass);
+
 	GParamSpec *pspec;
 	
 	gobject_class->dispose      = ui_gtk_prefs_dispose;
 	gobject_class->finalize     = ui_gtk_prefs_finalize;
-	gobject_class->set_property = ui_gtk_prefs_set_property;
 
-	pspec = g_param_spec_object("base", "base", "base", TTB_TYPE_FBASE,
-	                            G_PARAM_CONSTRUCT_ONLY
-	                            | G_PARAM_WRITABLE);
-	g_object_class_install_property(gobject_class, UI_GTK_PREFS_PROP_BASE,
-	                                pspec);
-
-	klass->show_prefs     = ui_gtk_prefs_show_prefs;
-	klass->set_pid_of_ttb = ui_gtk_prefs_set_pid_of_ttb;
+	prefs_class->name       = "Gtk";
+	prefs_class->get_widget = ui_gtk_prefs_get_widget;
+	prefs_class->add_dir    = add_dir;
 
 	g_type_class_add_private(klass, sizeof(UIGtkPrefsPrivate));
 }
 
+GType
+ui_gtk_prefs_get_type(GTypeModule *module)
+{
+	if (!ui_gtk_prefs_type) {
+		static const GTypeInfo prefs_info = {
+			sizeof(UIGtkPrefsClass),
+			(GBaseInitFunc) NULL,
+			(GBaseFinalizeFunc) NULL,
+			(GClassInitFunc) ui_gtk_prefs_class_init,
+			NULL, /* class_finalize */
+			NULL, /* class_data */
+			sizeof(UIGtkPrefs),
+			0,    /* n_preallocs */
+			(GInstanceInitFunc) ui_gtk_prefs_init
+		};
+		ui_gtk_prefs_type = g_type_module_register_type(module,
+		                                                TTB_TYPE_PREFS,
+		                                                "UIGtkPrefs",
+		                                                &prefs_info,
+		                                                0);
+	}
+	return ui_gtk_prefs_type;
+}

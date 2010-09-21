@@ -18,21 +18,32 @@
  *   along with TabletToolbox.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <stdio.h>
-#include "ttb-base.h"
-#include "ttb-app.h"
-#include "ui-gtk.h"
+#include <config.h>
 
-int main(int argc, char **argv)
+#include "ttb-prefs.h"
+
+G_DEFINE_TYPE(TTBPrefs, ttb_prefs, G_TYPE_OBJECT);
+
+static void
+ttb_prefs_init(TTBPrefs *self)
 {
-	g_type_init();
-
-	TTBApp *app = g_object_new(TTB_TYPE_APP, NULL);
-
-	ttb_app_exec(app, argc, argv);
-
-	g_object_unref(app);
-
-	return 1;
 }
 
+static void
+ttb_prefs_class_init(TTBPrefsClass *klass)
+{
+}
+
+gpointer
+ttb_prefs_get_widget(TTBPrefs *self)
+{
+	TTBPrefsClass *klass = TTB_PREFS_GET_CLASS(self);
+	return klass->get_widget(self);
+}
+
+void
+ttb_prefs_add_dir(TTBPrefs *self, const char *dirname)
+{
+	TTBPrefsClass *klass = TTB_PREFS_GET_CLASS(self);
+	klass->add_dir(self, dirname);
+}

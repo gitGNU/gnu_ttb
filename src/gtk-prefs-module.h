@@ -21,9 +21,14 @@
 #ifndef UI_GTK_PREFS_H
 #define UI_GTK_PREFS_H
 
+#include <config.h>
+
+#include "ttb-module.h"
+#include "ttb-prefs.h"
+
 #include <gtk/gtk.h>
 
-#define UI_TYPE_GTK_PREFS            (ui_gtk_prefs_get_type())
+#define UI_TYPE_GTK_PREFS            (ui_gtk_prefs_type)
 #define UI_GTK_PREFS(obj)            (G_TYPE_CHECK_INSTANCE_CAST((obj), \
                                       UI_TYPE_GTK_PREFS, UIGtkPrefs))
 #define UI_IS_GTK_PREFS(obj)         (G_TYPE_CHECK_INSTANCE_TYPE((obj), \
@@ -43,7 +48,7 @@ typedef struct _UIGtkPrefsPrivate UIGtkPrefsPrivate;
 
 struct _UIGtkPrefs
 {
-	GObject parent_instance;
+	TTBPrefs parent_instance;
 
 	/* instance members */
 	UIGtkPrefsPrivate *priv;
@@ -51,25 +56,17 @@ struct _UIGtkPrefs
 
 struct _UIGtkPrefsClass
 {
-	GObjectClass parent_class;
+	TTBPrefsClass parent_class;
 
 	/* class members */
-	void (*show_prefs)(UIGtkPrefs *self);
-	void (*set_pid_of_ttb)(UIGtkPrefs *self, int pid);
 };
 
 /* used by UI_TYPE_GTK_PREFS */
-GType ui_gtk_prefs_get_type(void);
+GType ui_gtk_prefs_get_type(GTypeModule *module);
 
 /*
  * Method definitions.
  */
-
-void ui_gtk_prefs_show_prefs(UIGtkPrefs *self);
-
-void ui_gtk_prefs_set_pid_of_ttb(UIGtkPrefs *self, int pid);
-
-void ui_gtk_prefs_set_busy_cursor(GtkWidget *widget, gboolean busy);
 
 G_BEGIN_DECLS
 

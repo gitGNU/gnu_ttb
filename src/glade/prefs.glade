@@ -432,7 +432,7 @@
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
                 <property name="use_stock">True</property>
-                <signal name="clicked" handler="gtk_main_quit"/>
+                <signal name="clicked" handler="gtk_widget_hide" object="prefs_window"/>
               </object>
               <packing>
                 <property name="expand">False</property>

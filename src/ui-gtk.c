@@ -19,6 +19,8 @@
  */
 
 #include "ui-gtk.h"
+#include "ttb-app.h"
+#include "gtk-prefs-module.h"
 #include <gtk/gtk.h>
 #include <string.h>
 #include <unistd.h>
@@ -34,13 +36,17 @@ G_DEFINE_TYPE(UIGtk, ui_gtk, TTB_TYPE_UI)
 struct _UIGtkPrivate
 {
 	GtkWidget *window;
+	TTBPrefs *prefs;
 };
 
 static void
 ui_gtk_init(UIGtk *self)
 {
 	self->priv = UI_GTK_GET_PRIVATE(self);
-	self->priv->window = NULL;
+	UIGtkPrivate *priv = self->priv;
+
+	priv->window = NULL;
+	priv->prefs  = NULL;
 }
 
 static void
@@ -67,18 +73,23 @@ cb_button_clicked(GtkWidget *widget, gpointer data)
 static void
 cb_prefs_button_clicked(GtkWidget *widget, gpointer data)
 {
-	/* Not portable */
-	pid_t pid = getpid();
-	char *cmdv[] = {PREFS_PATH, NULL};
-	gint stdin_fd;
+	UIGtk        *ui   = UI_GTK(data);
+	UIGtkPrivate *priv = ui->priv;
+	GtkWindow    *prefs_window;
 
-	if (g_spawn_async_with_pipes(NULL, cmdv, NULL, 0, NULL, NULL, NULL,
-	                             &stdin_fd, NULL, NULL, NULL))
-	{
-		gchar *msg = g_strdup_printf("%d", pid);
-		g_warn_if_fail(write(stdin_fd, msg, strlen(msg)) != -1);
-		close(stdin_fd);
+	/* TODO: This should go to TTBUI */
+	if (!priv->prefs) {
+		priv->prefs = TTB_PREFS(ttb_app_get_prefs(ttb_app_get()));
+		gchar *dirname = g_build_filename(g_get_home_dir(),
+	                                      ".local/share/applications/ttb",
+	                                          NULL);
+		ttb_prefs_add_dir(priv->prefs, dirname);
+		g_free(dirname);
 	}
+	prefs_window = GTK_WINDOW(ttb_prefs_get_widget(priv->prefs));
+	gtk_window_set_transient_for(prefs_window,
+	                             GTK_WINDOW(ui->priv->window));
+	gtk_widget_show(GTK_WIDGET(prefs_window));
 }
 
 static void

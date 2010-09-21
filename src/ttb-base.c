@@ -121,7 +121,7 @@ ttb_base_load_keys_from_file(TTBBase *self, gchar *fname, GKeyFile *kfile)
 
 
 void
-ttb_base_load_from_dir(TTBBase *self, gchar *dirname)
+ttb_base_load_from_dir(TTBBase *self, const gchar *dirname)
 {
 	TTBBaseClass *klass = TTB_BASE_GET_CLASS(self);
 	klass->load_from_dir(self, dirname);

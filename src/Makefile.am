@@ -15,15 +15,21 @@
 ## You should have received a copy of the GNU General Public License
 ## along with TabletToolbox. If not, see <http://www.gnu.org/licenses/>.
 
-bin_PROGRAMS = ttb ttb-prefs
+bin_PROGRAMS = ttb
 
 nobase_dist_pkgdata_DATA = glade/prefs.glade
 
-AM_CFLAGS = $(deps_CFLAGS)
+modulesdir = $(libdir)/ttb-0.1/modules
 
-ttb_LDADD = $(deps_LIBS)
+modules_LTLIBRARIES = gtk-prefs.la
+
+AM_CFLAGS = $(deps_CFLAGS) -DMODULESDIR=\""$(modulesdir)"\"
+
+ttb_LDADD = $(deps_LIBS) libcommon.la
 
 ttb_SOURCES = main.c \
+		ttb-app.c \
+		ttb-app.h \
 		ttb-base.c \
 		ttb-base.h \
 		ttb-ui.c \
@@ -31,15 +37,21 @@ ttb_SOURCES = main.c \
 		ui-gtk.c \
 		ui-gtk.h
 
-ttb_prefs_LDADD = $(deps_LIBS)
-
-ttb_prefs_SOURCES = gtk-prefs-main.c \
-		ttb-base.c \
-		ttb-base.h \
+gtk_prefs_la_SOURCES = gtk-prefs-module.c \
+		gtk-prefs-module.h \
 		ttb-fbase.h \
-		ttb-fbase.c \
-		ui-gtk-prefs.c \
-		ui-gtk-prefs.h
+		ttb-fbase.c
+
+gtk_prefs_la_LIBADD = $(deps_LIBS) libcommon.la
+
+gtk_prefs_la_LDFLAGS = -avoid-version -module
+
+noinst_LTLIBRARIES = libcommon.la
+
+libcommon_la_SOURCES = ttb-prefs.c \
+		ttb-prefs.h \
+		ttb-module.c \
+		ttb-module.h
 
 BUILT_SOURCES = ttb-paths.h
 

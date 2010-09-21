@@ -1,5 +1,8 @@
 #!/bin/sh
 # Run this to setup the sources
+: ${LIBTOOLIZE=libtoolize --force --copy}
 set -x
-autoreconf --force --install
+
+$LIBTOOLIZE
+LIBTOOLIZE=true autoreconf --force --install
 intltoolize --force --automake
