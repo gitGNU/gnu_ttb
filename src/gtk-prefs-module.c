@@ -137,6 +137,7 @@ setup_tree(TTBBase *base, GtkTreeView *tree)
 		                   -1);
 		list = g_slist_next(list);
 	}
+	gtk_widget_realize(GTK_WIDGET(tree));
 }
 
 static void
@@ -420,10 +421,12 @@ cb_add_clicked(GtkWidget *widget, gpointer data)
 		priv->sysapp_db = g_object_new(TTB_TYPE_BASE, NULL);
 		ttb_base_load_from_dir(priv->sysapp_db, APP_DIR);
 		setup_sysapp_tree(priv->sysapp_db, priv->sysapp_tree);
-		ui_gtk_prefs_set_busy_cursor(GTK_WIDGET(priv->window), FALSE);
 	}
 
-	gtk_widget_realize(priv->app_chooser);
+	gtk_widget_realize(GTK_WIDGET(priv->sysapp_tree));
+	while (gtk_events_pending())
+		gtk_main_iteration();
+	ui_gtk_prefs_set_busy_cursor(GTK_WIDGET(priv->window), FALSE);
 	gtk_widget_show(priv->app_chooser);
 }
 
@@ -450,7 +453,10 @@ cb_remove_clicked(GtkWidget *widget, gpointer data)
 		ttb_fbase_remove_entry(base, i);
 
 		gtk_tree_path_free(path);
+
+		gtk_widget_set_sensitive(priv->apply_button, TRUE);
 	}
+
 }
 
 G_MODULE_EXPORT void

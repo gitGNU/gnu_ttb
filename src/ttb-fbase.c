@@ -276,18 +276,23 @@ ttb_fbase_save(TTBFBase *self)
 {
 	g_return_if_fail(TTB_IS_FBASE(self));
 
-	GSList *flist = self->priv->list;
+	TTBFBasePrivate *priv = self->priv;
+
+	GSList *flist = priv->list;
 	GSList *dlist = ttb_base_get_entries_list(TTB_BASE(self));
 	while(flist && dlist) {
 		gchar       *fname = flist->data;
 		DesktopItem *item  = dlist->data;
-		flist = g_slist_next(flist);
-		dlist = g_slist_next(dlist);
 
-		if (!fname)
-			fname = make_name(self->priv->dirname, item->name);
+		if (!fname) {
+			fname = make_name(priv->dirname, item->name);
+			flist->data = fname;
+		}
 		if (!save_file(fname, item))
 			g_warning("Saving failed: %s", fname);
+
+		flist = g_slist_next(flist);
+		dlist = g_slist_next(dlist);
 	}
 	flist = self->priv->remove;
 	while(flist) {
@@ -296,7 +301,7 @@ ttb_fbase_save(TTBFBase *self)
 		flist = g_slist_next(flist);
 	}
 	g_slist_free(flist);
-	self->priv->remove = NULL;
+	priv->remove = NULL;
 }
 
 static void

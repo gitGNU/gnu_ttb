@@ -1,4 +1,9 @@
 2010-09-22 Mariusz Adamski <mariusz.adamski@gmail.com>
+	* src/gtk-prefs-module.c: Window behaviour fixes.
+	* src/ttb-fbase.c: Fixed leaking memory and issue with deleting
+	recently created items.
+
+2010-09-22 Mariusz Adamski <mariusz.adamski@gmail.com>
 	* src/ttb-prefs.c, src/ttb-prefs.h (connect_ui): New virtual method.
 	* src/gtk-prefs-module.c (connect_ui): Ditto.
 	* src/main.c: Gettext stuff.
