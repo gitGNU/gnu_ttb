@@ -18,6 +18,9 @@
  *   along with TabletToolbox.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <libintl.h>
+#define _(String) gettext(String)
+
 #include "ui-gtk.h"
 #include "ttb-app.h"
 #include "gtk-prefs-module.h"
@@ -80,6 +83,7 @@ cb_prefs_button_clicked(GtkWidget *widget, gpointer data)
 	/* TODO: This should go to TTBUI */
 	if (!priv->prefs) {
 		priv->prefs = TTB_PREFS(ttb_app_get_prefs(ttb_app_get()));
+		ttb_prefs_connect_ui(priv->prefs, TTB_UI(ui));
 		gchar *dirname = g_build_filename(g_get_home_dir(),
 	                                      ".local/share/applications/ttb",
 	                                          NULL);
@@ -98,14 +102,18 @@ ui_gtk_rebuild(TTBUI *self)
 	g_return_if_fail(UI_IS_GTK(self));
 
 	UIGtkPrivate *priv = UI_GTK(self)->priv;
+	TTBUIClass *klass = TTB_UI_CLASS(ui_gtk_parent_class);
+
+	klass->rebuild(self);
+
 	if (priv->window) {
-		g_signal_handlers_block_matched(priv->window,
-		                                G_SIGNAL_MATCH_FUNC,
-		                                0, 0, 0,
-		                                G_CALLBACK(gtk_main_quit), 0);
-		gtk_widget_destroy(priv->window);
+		gtk_widget_hide(priv->window);
+		GtkWidget *child = gtk_bin_get_child(GTK_BIN(priv->window));
+		gtk_widget_destroy(child);
+	} else {
+		priv->window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 	}
-	priv->window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+
 	GtkWidget *hbox = gtk_hbox_new(FALSE, 1);
 	GtkWidget *tbox = gtk_hbox_new(TRUE, 1);
 	gtk_container_add(GTK_CONTAINER(priv->window), hbox);
@@ -138,7 +146,7 @@ ui_gtk_rebuild(TTBUI *self)
 	gtk_button_set_image(GTK_BUTTON(button),
 	                     gtk_image_new_from_stock(GTK_STOCK_PREFERENCES,
 	                                              GTK_ICON_SIZE_BUTTON));
-	gtk_widget_set_tooltip_text(button, "Preferences");
+	gtk_widget_set_tooltip_text(button, _("Preferences"));
 	g_signal_connect(button, "clicked",
 	                 G_CALLBACK(cb_prefs_button_clicked), self);
 	gtk_box_pack_start(GTK_BOX(hbox), button, TRUE, FALSE, 0);
@@ -155,7 +163,7 @@ ui_gtk_rebuild(TTBUI *self)
 static gboolean
 ui_gtk_exec(TTBUI *self, int argc, char **argv)
 {
-	g_return_if_fail(UI_IS_GTK(self));
+	g_return_val_if_fail(UI_IS_GTK(self), FALSE);
 
 	gtk_init(&argc, &argv);
 
@@ -163,7 +171,7 @@ ui_gtk_exec(TTBUI *self, int argc, char **argv)
 
 	gtk_main();
 
-	return 1;
+	return TRUE;
 }
 
 static void
@@ -171,7 +179,6 @@ ui_gtk_class_init(UIGtkClass *klass)
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS(klass);
 	TTBUIClass *ui_class = TTB_UI_CLASS(klass); 
-	GParamSpec *pspec;
 	
 	gobject_class->dispose  = ui_gtk_dispose;
 	gobject_class->finalize = ui_gtk_finalize;

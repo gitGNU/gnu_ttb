@@ -1,3 +1,23 @@
+2010-09-22 Mariusz Adamski <mariusz.adamski@gmail.com>
+	* src/ttb-prefs.c, src/ttb-prefs.h (connect_ui): New virtual method.
+	* src/gtk-prefs-module.c (connect_ui): Ditto.
+	* src/main.c: Gettext stuff.
+	* src/ui-gtk.c: Ditto.
+	* src/ttb-ui.c: TTBUI now takes dirname instead of TTBBase as an
+	contruct argument.
+	* src/ttb-app.c: Ditto.
+	* src/ttb-ui.c (rebuild): Now virtual non-abstract.
+	* src/ui-gtk.c (ui_gtk_rebuild): Rebuilding the interface.
+
+	* configure.ac: Added -Wall to default debug CFLAGS.
+
+	* src/ttb-base.c: Fixing various warnings resulted in adding -Wall.
+	* src/ttb-fbase.c, src/ttb-fbase.h: Ditto.
+	* src/gtk-prefs-module.c: Ditto.
+	* src/ttb-ui.c: Ditto.
+	* src/ui-gtk.c: Ditto.
+	* src/ttb-app.h (ttb_app_run): Renamed to ttb_app_exec.
+
 2010-09-21 Mariusz Adamski <mariusz.adamski@gmail.com>
 	* bootstrap: Improved output.
 

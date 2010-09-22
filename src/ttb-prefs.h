@@ -23,6 +23,7 @@
 
 #include <gtk/gtk.h>
 #include "ttb-base.h"
+#include "ttb-ui.h"
 
 #define TTB_TYPE_PREFS            (ttb_prefs_get_type())
 #define TTB_PREFS(obj)            (G_TYPE_CHECK_INSTANCE_CAST((obj), \
@@ -56,6 +57,7 @@ struct _TTBPrefsClass
 	const gchar *name;
 	gpointer (*get_widget)(TTBPrefs *self);
 	void     (*add_dir)(TTBPrefs *self, const char *dirname);
+	void     (*connect_ui)(TTBPrefs *self, TTBUI *ui);
 };
 
 /* used by UI_TYPE_PREFS */
@@ -68,6 +70,8 @@ GType ttb_prefs_get_type(void);
 gpointer ttb_prefs_get_widget(TTBPrefs *self);
 
 void ttb_prefs_add_dir(TTBPrefs *self, const char *dirname);
+
+void ttb_prefs_connect_ui(TTBPrefs *self, TTBUI *ui);
 
 G_BEGIN_DECLS
 

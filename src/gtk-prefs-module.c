@@ -23,9 +23,9 @@
 #include "gtk-prefs-module.h"
 
 #include <gtk/gtk.h>
-#include <unistd.h>
-#include "ttb-fbase.h"
+#include <stdlib.h>
 #include "ttb-paths.h"
+#include "ttb-fbase.h"
 
 #define UI_FILE datadir "glade/prefs.glade"
 #define APP_DIR "/usr/share/applications"
@@ -34,8 +34,10 @@
 #define UI_GTK_PREFS_GET_PRIVATE(obj) (G_TYPE_INSTANCE_GET_PRIVATE((obj), \
                                        UI_TYPE_GTK_PREFS, UIGtkPrefsPrivate))
 
+
 struct _UIGtkPrefsPrivate
 {
+	TTBUI       *ui;
 	TTBFBase    *base;
 	TTBBase     *sysapp_db;
 	GtkWidget   *window;
@@ -76,10 +78,10 @@ ttb_module_unload(TTBModule *module)
 static void
 ui_gtk_prefs_init(UIGtkPrefs *self)
 {
-	g_debug("[UIGtkPrefs::init]");
 	self->priv = UI_GTK_PREFS_GET_PRIVATE(self);
 	UIGtkPrefsPrivate *priv = self->priv;
 
+	priv->ui          = NULL;
 	priv->base        = NULL;
 	priv->sysapp_db   = NULL;
 	priv->window      = NULL;
@@ -191,14 +193,13 @@ setup_icon_view(UIGtkPrefs *self, GtkIconView *view)
 gpointer
 ui_gtk_prefs_get_widget(TTBPrefs *prefs)
 {
-	g_return_if_fail(UI_IS_GTK_PREFS(prefs));
+	g_return_val_if_fail(UI_IS_GTK_PREFS(prefs), NULL);
 
 	UIGtkPrefs *self = UI_GTK_PREFS(prefs);
 
 	UIGtkPrefsPrivate *priv = self->priv;
-	if (priv->window) {
+	if (priv->window)
 		return priv->window;
-	}
 
 	GtkBuilder *builder;
 	GError *error = NULL;
@@ -207,7 +208,7 @@ ui_gtk_prefs_get_widget(TTBPrefs *prefs)
 	if(!gtk_builder_add_from_file(builder, UI_FILE, &error)) {
 		g_warning("Error: %s", error->message);
 		g_free(error);
-		return;
+		return NULL;
 	}
 	priv->window = GTK_WIDGET(gtk_builder_get_object(builder,
 	                                                 "prefs_window"));
@@ -277,8 +278,9 @@ static void
 restart_ttb(UIGtkPrefs *self)
 {
 	UIGtkPrefsPrivate *priv = self->priv;
+	g_return_if_fail(priv->ui);
 
-	g_debug("Not implemented yet");
+	ttb_ui_rebuild(priv->ui);
 }
 
 G_MODULE_EXPORT void
@@ -362,7 +364,6 @@ cb_icon_clear(GtkWidget *widget, gpointer *data)
 	UIGtkPrefsPrivate *priv = self->priv;
 
 	GtkTreeIter iter;
-	GtkIconView *view = priv->icon_view;
 	GtkTreeModel *model = gtk_tree_view_get_model(priv->tree);
 	GtkListStore *apps = GTK_LIST_STORE(model);
 	GtkTreeSelection *selection = gtk_tree_view_get_selection(priv->tree);
@@ -523,6 +524,18 @@ add_dir(TTBPrefs *prefs, const char *dirname)
 }
 
 static void
+connect_ui(TTBPrefs *prefs, TTBUI *ui)
+{
+	g_return_if_fail(UI_IS_GTK_PREFS(prefs));
+
+	UIGtkPrefs *self = UI_GTK_PREFS(prefs);
+	UIGtkPrefsPrivate *priv = self->priv;
+
+	g_warn_if_fail(priv->ui == 0);
+	priv->ui = ui;
+}
+
+static void
 ui_gtk_prefs_class_init(UIGtkPrefsClass *klass)
 {
 	GObjectClass  *gobject_class = G_OBJECT_CLASS(klass);
@@ -530,14 +543,13 @@ ui_gtk_prefs_class_init(UIGtkPrefsClass *klass)
 
 	ui_gtk_prefs_parent_class = g_type_class_peek_parent(klass);
 
-	GParamSpec *pspec;
-	
 	gobject_class->dispose      = ui_gtk_prefs_dispose;
 	gobject_class->finalize     = ui_gtk_prefs_finalize;
 
 	prefs_class->name       = "Gtk";
 	prefs_class->get_widget = ui_gtk_prefs_get_widget;
 	prefs_class->add_dir    = add_dir;
+	prefs_class->connect_ui = connect_ui;
 
 	g_type_class_add_private(klass, sizeof(UIGtkPrefsPrivate));
 }

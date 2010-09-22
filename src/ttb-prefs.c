@@ -47,3 +47,10 @@ ttb_prefs_add_dir(TTBPrefs *self, const char *dirname)
 	TTBPrefsClass *klass = TTB_PREFS_GET_CLASS(self);
 	klass->add_dir(self, dirname);
 }
+
+void
+ttb_prefs_connect_ui(TTBPrefs *self, TTBUI *ui)
+{
+	TTBPrefsClass *klass = TTB_PREFS_GET_CLASS(self);
+	klass->connect_ui(self, ui);
+}

@@ -26,8 +26,8 @@ AC_ARG_ENABLE(debug,
               [  --enable-debug          turn on debugging],,
               enable_debug="no")
 if test "x$enable_debug" = "xyes"; then
-	CFLAGS="$CFLAGS -g -DDEBUG"
-	CXXFLAGS="$CXXFLAGS -g -DDEBUG"
+	CFLAGS="$CFLAGS -g -DDEBUG -Wall"
+	CXXFLAGS="$CXXFLAGS -g -DDEBUG -Wall"
 	AC_MSG_RESULT(yes)
 else
 	AC_MSG_RESULT(no)

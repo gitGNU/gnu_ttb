@@ -128,18 +128,17 @@ ttb_base_load_from_dir(TTBBase *self, const gchar *dirname)
 }
 
 static void
-load_from_dir(TTBBase *self, gchar *dirname)
+load_from_dir(TTBBase *self, const gchar *dirname)
 {
 	TTBBaseClass *klass = TTB_BASE_GET_CLASS(self);
 	GDir *dir;
 	const gchar *name;
 	GKeyFile *kfile = g_key_file_new();
-	TTBBasePrivate *priv = self->priv;
 
 	/* In case given directory doesn't exist - create it */
 	g_mkdir_with_parents(dirname, 0755);
 	dir = g_dir_open(dirname, 0, NULL);
-	while (name = g_dir_read_name(dir)) {
+	while ((name = g_dir_read_name(dir))) {
 		gchar *dfname = g_build_filename(dirname, name, NULL);
 		klass->load_keys_from_file(self, dfname, kfile);	
 		g_free(dfname);
@@ -185,7 +184,7 @@ ttb_base_finalize(GObject *gobject)
 GSList*
 ttb_base_get_entries_list(TTBBase *self)
 {
-	g_return_if_fail(TTB_IS_BASE(self));
+	g_return_val_if_fail(TTB_IS_BASE(self), NULL);
 
 	return self->priv->list;
 }
@@ -201,7 +200,7 @@ ttb_base_set_entries_list(TTBBase *self, GSList *list)
 DesktopItem*
 ttb_base_get_entry(TTBBase *self, gint index)
 {
-	g_return_if_fail(TTB_IS_BASE(self));
+	g_return_val_if_fail(TTB_IS_BASE(self), NULL);
 
 	GSList *list = self->priv->list;
 	list = g_slist_nth(list, index);

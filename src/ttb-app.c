@@ -29,6 +29,8 @@
 
 G_DEFINE_TYPE(TTBApp, ttb_app, G_TYPE_OBJECT);
 
+#define TTB_PREFS_MODULE MODULESDIR "/gtk-prefs." G_MODULE_SUFFIX
+
 static TTBApp *app = NULL;
 
 struct _TTBAppPrivate
@@ -45,11 +47,8 @@ ttb_app_exec(TTBApp *self, int argc, char **argv)
 	gchar *dirname = g_build_filename(g_get_home_dir(),
 	                                  ".local/share/applications/ttb",
 	                                  NULL);
-	TTBBase *base = g_object_new(TTB_TYPE_BASE, NULL);
-	ttb_base_load_from_dir(base, dirname);
+	priv->ui = g_object_new(UI_TYPE_GTK, "dirname", dirname, NULL);
 	g_free(dirname);
-
-	priv->ui = g_object_new(UI_TYPE_GTK, "base", base, NULL);
 
 	ttb_ui_exec(priv->ui, argc, argv);
 }
@@ -64,8 +63,7 @@ ttb_app_get()
 gpointer
 ttb_app_get_prefs(TTBApp *self)
 {
-	g_debug("[TTBApp::get_prefs]");
-	TTBModule *module = ttb_module_new(MODULESDIR "/gtk-prefs.so");
+	TTBModule *module = ttb_module_new(TTB_PREFS_MODULE);
 	g_type_module_use(G_TYPE_MODULE(module));
 	g_type_module_unuse(G_TYPE_MODULE(module));
 

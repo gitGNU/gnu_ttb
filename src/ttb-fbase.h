@@ -41,7 +41,6 @@ G_BEGIN_DECLS
 typedef struct _TTBFBase        TTBFBase;
 typedef struct _TTBFBaseClass   TTBFBaseClass;
 typedef struct _TTBFBasePrivate TTBFBasePrivate;
-typedef struct _FDesktopItem    FDesktopItem;
 
 struct _TTBFBase
 {
@@ -79,12 +78,12 @@ void ttb_fbase_add_entry(TTBFBase *self, gchar *name, gchar *exec,
 
 void ttb_fbase_remove_entry(TTBFBase *self, gint index);
 
-void ttb_base_set_entry_name(TTBFBase *self, gint index, gchar *name);
+void ttb_fbase_set_entry_name(TTBFBase *self, gint index, gchar *name);
 
-void ttb_base_set_entry_exec(TTBFBase *self, gint index, gchar *exec);
+void ttb_fbase_set_entry_exec(TTBFBase *self, gint index, gchar *exec);
 
-void ttb_base_set_entry_icon(TTBFBase *self, gint index, gchar *icon);
+void ttb_fbase_set_entry_icon(TTBFBase *self, gint index, gchar *icon);
 
 G_END_DECLS
 
-#endif /* TTB_BASE_H */
+#endif /* TTB_FBASE_H */

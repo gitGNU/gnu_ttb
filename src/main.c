@@ -18,16 +18,28 @@
  *   along with TabletToolbox.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <config.h>
+
 #include <stdio.h>
-#include "ttb-base.h"
+#include <libintl.h>
 #include "ttb-app.h"
+#include "ttb-base.h"
 #include "ui-gtk.h"
+#include "ttb-paths.h"
 
 int main(int argc, char **argv)
 {
+	TTBApp *app;
+
 	g_type_init();
 
-	TTBApp *app = g_object_new(TTB_TYPE_APP, NULL);
+	#ifdef ENABLE_NLS
+        /* Setting up gettext */
+        bindtextdomain(GETTEXT_PACKAGE, LOCALEDIR);
+        textdomain(GETTEXT_PACKAGE);
+        #endif /* ENABLE_NLS */
+
+	app = g_object_new(TTB_TYPE_APP, NULL);
 
 	ttb_app_exec(app, argc, argv);
 

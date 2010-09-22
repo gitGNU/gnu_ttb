@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: mariusz.adamski@gmail.com\n"
-"POT-Creation-Date: 2010-09-11 17:20+0200\n"
-"PO-Revision-Date: 2010-09-11 19:31+0100\n"
+"POT-Creation-Date: 2010-09-22 18:41+0200\n"
+"PO-Revision-Date: 2010-09-22 18:44+0100\n"
 "Last-Translator: Mariusz Adamski <mariusz.adamski@gmail.com>\n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -39,4 +39,8 @@ msgstr "Nomo"
 #: ../src/glade/prefs.glade.h:6
 msgid "TTB Preferences"
 msgstr "TTB Agordoj"
+
+#: ../src/ui-gtk.c:149
+msgid "Preferences"
+msgstr "Agordoj"
 

@@ -1,3 +1,3 @@
 # List of source files which contain translatable strings.
 src/glade/prefs.glade
-
+src/ui-gtk.c

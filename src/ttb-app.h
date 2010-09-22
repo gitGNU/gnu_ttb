@@ -63,7 +63,7 @@ GType ttb_app_get_type(void);
  * Method definitions.
  */
 
-void ttb_app_run(TTBApp *self, int argc, char **argv);
+void ttb_app_exec(TTBApp *self, int argc, char **argv);
 
 TTBApp* ttb_app_get();
 

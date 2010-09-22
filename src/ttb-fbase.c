@@ -92,7 +92,7 @@ ttb_fbase_finalize(GObject *gobject)
 static gboolean
 load_keys_from_file(TTBBase *self, gchar *fname, GKeyFile *kfile)
 {
-	g_return_if_fail(TTB_IS_FBASE(self));
+	g_return_val_if_fail(TTB_IS_FBASE(self), FALSE);
 
 	TTBBaseClass *klass = TTB_BASE_CLASS(ttb_fbase_parent_class);
 	TTBFBasePrivate *priv = TTB_FBASE(self)->priv;
@@ -101,6 +101,7 @@ load_keys_from_file(TTBBase *self, gchar *fname, GKeyFile *kfile)
 		return FALSE;
 
 	priv->list = g_slist_append(priv->list, g_strdup(fname));
+	return TRUE;
 }
 
 static void
@@ -261,7 +262,7 @@ save_file(const char *fname, DesktopItem *item)
 	                     G_KEY_FILE_DESKTOP_KEY_ICON,
 	                     item->icon);
 	
-	gint length;
+	gsize length;
 	gchar *data = g_key_file_to_data(kfile, &length, NULL);
 	g_key_file_free(kfile);
 	g_file_set_contents(fname, data, length, NULL);

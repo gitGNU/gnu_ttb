@@ -293,6 +293,7 @@
                         <child>
                           <object class="GtkCellRendererText" id="cellrenderertext1">
                             <property name="editable">True</property>
+                            <signal name="edited" handler="cb_name_edited"/>
                           </object>
                           <attributes>
                             <attribute name="text">0</attribute>
