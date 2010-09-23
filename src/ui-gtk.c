@@ -112,6 +112,11 @@ ui_gtk_rebuild(TTBUI *self)
 		gtk_widget_destroy(child);
 	} else {
 		priv->window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+		gtk_window_set_keep_above(GTK_WINDOW(priv->window), TRUE);
+		gtk_window_set_position(GTK_WINDOW(priv->window),
+		                        GTK_WIN_POS_CENTER);
+		gtk_window_set_resizable(GTK_WINDOW(priv->window), FALSE);
+		gtk_window_set_title(GTK_WINDOW(priv->window), "TTB");
 	}
 
 	GtkWidget *hbox = gtk_hbox_new(FALSE, 1);
@@ -129,7 +134,7 @@ ui_gtk_rebuild(TTBUI *self)
 		                                 GTK_ICON_SIZE_LARGE_TOOLBAR);
 		} else {
 			ic = gtk_image_new_from_stock(GTK_STOCK_MISSING_IMAGE,
-			                              GTK_ICON_SIZE_BUTTON);		
+			                         GTK_ICON_SIZE_LARGE_TOOLBAR);
 		}
 		gtk_button_set_image(GTK_BUTTON(button), ic);
 		gtk_widget_set_tooltip_text(button, item->name);
@@ -151,10 +156,6 @@ ui_gtk_rebuild(TTBUI *self)
 	                 G_CALLBACK(cb_prefs_button_clicked), self);
 	gtk_box_pack_start(GTK_BOX(hbox), button, TRUE, FALSE, 0);
 
-	gtk_window_set_keep_above(GTK_WINDOW(priv->window), TRUE);
-	gtk_window_set_position(GTK_WINDOW(priv->window), GTK_WIN_POS_CENTER);
-	gtk_window_set_resizable(GTK_WINDOW(priv->window), FALSE);
-	gtk_window_set_title(GTK_WINDOW(priv->window), "TTB");
 	gtk_widget_show_all(priv->window);
 	g_signal_connect_swapped(G_OBJECT(priv->window), "destroy",
 	                         G_CALLBACK(gtk_main_quit), NULL);

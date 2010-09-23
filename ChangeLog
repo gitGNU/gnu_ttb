@@ -1,4 +1,7 @@
 2010-09-23 Mariusz Adamski <mariusz.adamski@gmail.com>
+	* src/ui-gtk.c: Code clean-up.
+
+2010-09-23 Mariusz Adamski <mariusz.adamski@gmail.com>
 	* src/gtk-prefs-module.c (cb_cancel_clicked): New callback.
 	* src/ttb-fbase.c, src/ttb-fbase.h (ttb_fbase_undo): New method.
 
