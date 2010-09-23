@@ -34,7 +34,6 @@
 #define UI_GTK_PREFS_GET_PRIVATE(obj) (G_TYPE_INSTANCE_GET_PRIVATE((obj), \
                                        UI_TYPE_GTK_PREFS, UIGtkPrefsPrivate))
 
-
 struct _UIGtkPrefsPrivate
 {
 	TTBUI       *ui;
@@ -127,6 +126,7 @@ setup_tree(TTBBase *base, GtkTreeView *tree)
 	GSList *list = ttb_base_get_entries_list(base);
 	GtkListStore *store = GTK_LIST_STORE(gtk_tree_view_get_model(tree));
 
+	gtk_list_store_clear(store);
 	while (list) {
 		DesktopItem *item = list->data;
 		gtk_list_store_append(store, &iter);
@@ -206,7 +206,7 @@ ui_gtk_prefs_get_widget(TTBPrefs *prefs)
 	GError *error = NULL;
 
 	builder = gtk_builder_new();
-	if(!gtk_builder_add_from_file(builder, UI_FILE, &error)) {
+	if (!gtk_builder_add_from_file(builder, UI_FILE, &error)) {
 		g_warning("Error: %s", error->message);
 		g_free(error);
 		return NULL;
@@ -401,6 +401,19 @@ cb_apply_clicked(GtkWidget *widget, gpointer data)
 }
 
 G_MODULE_EXPORT void
+cb_cancel_clicked(GtkWidget *widget, gpointer data)
+{
+	UIGtkPrefs *self = UI_GTK_PREFS(data);
+	UIGtkPrefsPrivate *priv = self->priv;
+
+	ttb_fbase_undo(priv->base);
+	setup_tree(TTB_BASE(priv->base), priv->tree);
+
+	gtk_widget_hide(priv->window);
+	gtk_widget_set_sensitive(priv->apply_button, FALSE);
+}
+
+G_MODULE_EXPORT void
 cb_ok_clicked(GtkWidget *widget, gpointer data)
 {
 	UIGtkPrefs *self = UI_GTK_PREFS(data);
@@ -524,9 +537,12 @@ add_dir(TTBPrefs *prefs, const char *dirname)
 	UIGtkPrefs *self = UI_GTK_PREFS(prefs);
 	UIGtkPrefsPrivate *priv = self->priv;
 
-	if (!priv->base)
+	/* NOTE: For now, we don't support adding multiple directories; it is
+	 * trivial to add, when the need arise. */
+	if (!priv->base) {
 		priv->base = g_object_new(TTB_TYPE_FBASE, NULL);
-	ttb_base_load_from_dir(TTB_BASE(priv->base), dirname);
+		ttb_base_load_from_dir(TTB_BASE(priv->base), dirname);
+	}
 }
 
 static void

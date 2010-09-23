@@ -56,6 +56,7 @@ struct _TTBFBaseClass
 
 	/* class members */
 	void (*save)(TTBFBase *self);
+	void (*undo)(TTBFBase *self);
 	void (*add_entry)(TTBFBase *self, gchar *name, gchar *exec,
 	                  gchar *icon);
 	void (*remove_entry)(TTBFBase *self, gint index);
@@ -72,6 +73,8 @@ GType ttb_fbase_get_type(void);
  */
 
 void ttb_fbase_save(TTBFBase *self);
+
+void ttb_fbase_undo(TTBFBase *self);
 
 void ttb_fbase_add_entry(TTBFBase *self, gchar *name, gchar *exec,
                          gchar *icon);

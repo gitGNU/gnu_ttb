@@ -294,7 +294,7 @@ ttb_fbase_save(TTBFBase *self)
 		flist = g_slist_next(flist);
 		dlist = g_slist_next(dlist);
 	}
-	flist = self->priv->remove;
+	flist = priv->remove;
 	while(flist) {
 		g_remove(flist->data);
 		g_free(flist->data);
@@ -302,6 +302,43 @@ ttb_fbase_save(TTBFBase *self)
 	}
 	g_slist_free(flist);
 	priv->remove = NULL;
+}
+
+void
+ttb_fbase_undo(TTBFBase *self)
+{
+	g_return_if_fail(TTB_IS_FBASE(self));
+
+	TTBBaseClass *klass = TTB_BASE_CLASS(ttb_fbase_parent_class);
+	TTBFBasePrivate *priv = self->priv;
+
+	GSList *flist = priv->list;
+	GSList *dlist = ttb_base_get_entries_list(TTB_BASE(self));
+	while(flist && dlist) {
+		DesktopItem *item  = dlist->data;
+		g_free(item->name);
+		g_free(item->exec);
+		g_free(item->icon);
+		g_free(dlist->data);
+		g_free(flist->data);
+
+		flist = g_slist_next(flist);
+		dlist = g_slist_next(dlist);
+	}
+	g_slist_free(flist);
+	g_slist_free(dlist);
+	priv->list = NULL;
+	ttb_base_set_entries_list(TTB_BASE(self), NULL);
+
+	flist = priv->remove;
+	while(flist) {
+		g_free(flist->data);
+		flist = g_slist_next(flist);
+	}
+	g_slist_free(flist);
+	priv->remove = NULL;
+
+	klass->load_from_dir(TTB_BASE(self), priv->dirname);
 }
 
 static void
@@ -317,6 +354,7 @@ ttb_fbase_class_init(TTBFBaseClass *klass)
 	base_class->load_from_dir       = load_from_dir;
 
 	klass->save           = ttb_fbase_save;
+	klass->undo           = ttb_fbase_undo;
 	klass->add_entry      = ttb_fbase_add_entry;
 	klass->remove_entry   = ttb_fbase_remove_entry;
 	klass->set_entry_name = ttb_fbase_set_entry_name;
