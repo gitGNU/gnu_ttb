@@ -290,6 +290,7 @@ cb_name_edited(GtkCellRendererText *cell, gchar *path_string, gchar *new_text,
 {
 	UIGtkPrefs *self = UI_GTK_PREFS(data);
 	UIGtkPrefsPrivate *priv = self->priv;
+
 	ui_gtk_prefs_set_cell_text(self, COLUMN_NAME, path_string, new_text);
 	ttb_fbase_set_entry_name(priv->base, atoi(path_string), new_text);
 }
@@ -300,6 +301,7 @@ cb_exec_edited(GtkCellRendererText *cell, gchar *path_string, gchar *new_text,
 {
 	UIGtkPrefs *self = UI_GTK_PREFS(data);
 	UIGtkPrefsPrivate *priv = self->priv;
+
 	ui_gtk_prefs_set_cell_text(self, COLUMN_EXEC, path_string, new_text);
 	ttb_fbase_set_entry_exec(priv->base, atoi(path_string), new_text);
 }
@@ -320,7 +322,6 @@ cb_icon_editing_started(GtkCellRenderer *cell,
 		setup_icon_view(self, priv->icon_view);
 		ui_gtk_prefs_set_busy_cursor(GTK_WIDGET(priv->icon_chooser), FALSE);
 	}
-
 }
 
 G_MODULE_EXPORT void
@@ -478,10 +479,11 @@ cb_new_clicked(GtkWidget *widget, gpointer data)
 	UIGtkPrefs *self = UI_GTK_PREFS(data);
 	UIGtkPrefsPrivate *priv = self->priv;
 
-	GtkTreeIter iter;
-	GtkTreeView *tree = priv->tree; 
+	GtkTreeIter   iter;
+	GtkTreeView  *tree = priv->tree;
 	GtkListStore *store = GTK_LIST_STORE(gtk_tree_view_get_model(tree));
-	TTBFBase *base = priv->base;
+	GtkTreePath  *path;
+	TTBFBase     *base = priv->base;
 	
 	gtk_list_store_append(store, &iter);
 	gtk_list_store_set(store, &iter,
@@ -490,6 +492,14 @@ cb_new_clicked(GtkWidget *widget, gpointer data)
 	                   COLUMN_ICON, "",
 	                   -1);
 	ttb_fbase_add_entry(base, "", "", "");
+
+	while (gtk_events_pending())
+		gtk_main_iteration();
+
+	path = gtk_tree_model_get_path(GTK_TREE_MODEL(store), &iter);
+	gtk_tree_view_set_cursor(tree, path, gtk_tree_view_get_column(tree, 0),
+	                         TRUE);
+	gtk_tree_path_free(path);
 }
 
 G_MODULE_EXPORT void
@@ -524,7 +534,11 @@ cb_sysapp_chosen(GtkWidget *widget, gpointer *data)
 		                   COLUMN_EXEC, item->exec,
 		                   COLUMN_ICON, item->icon,
 		                   -1);
+		gtk_tree_path_free(path);
 
+		path = gtk_tree_model_get_path(GTK_TREE_MODEL(apps), &iter);
+		gtk_tree_view_set_cursor(priv->tree, path, NULL, FALSE);
+		gtk_widget_grab_focus(GTK_WIDGET(priv->tree));
 		gtk_tree_path_free(path);
 	}
 }
