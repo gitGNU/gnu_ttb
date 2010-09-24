@@ -1,3 +1,7 @@
+TabletToolbox 0.1
+* TabletToolbox now has a prefs dialog, which can be used to add, remove or
+  edit application entries.
+
 TabletToolbox 0.0.1
 * Initial release
 

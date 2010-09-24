@@ -1,3 +1,7 @@
+2010-09-24 Mariusz Adamski <mariusz.adamski@gmail.com>
+	* configure.ac: Version bump.
+	* NEWS, README: Ditto.
+
 2010-09-23 Mariusz Adamski <mariusz.adamski@gmail.com>
 	* src/gtk-prefs-module.c (cb_new_clicked): Editing focus on the new row.
 	* src/gtk-prefs-module.c (cb_sysapp_chosen): Setting focus on the new

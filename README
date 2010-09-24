@@ -17,10 +17,8 @@ You need:
 Using TabletToolbox
 -------------------
 
-TabletToolbox reads .desktop files located in ~/.local/share/applications/ttb
-and presents the user with a list of applications to launch. For now, the only
-way to add applications to TabletToolbox is to manually copy those files
-there.
+TabletToolbox allows the user to configure a list of applications, which then
+can be easily launched through simple button press.
 
 You can use your desktop environments settings to setup a hot-key to run
 TabletToolbox when you e.g. press a `Toolbox' button on a cover of your tablet

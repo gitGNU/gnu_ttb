@@ -13,7 +13,7 @@
 # PARTICULAR PURPOSE.
 
 AC_PREREQ([2.63])
-AC_INIT([ttb], [0.0.1], [mariusz.adamski@gmail.com])
+AC_INIT([ttb], [0.1], [mariusz.adamski@gmail.com])
 AM_INIT_AUTOMAKE([gnu dist-bzip2])
 AC_CONFIG_SRCDIR([src/main.c])
 AC_CONFIG_HEADERS([config.h])
