@@ -69,3 +69,5 @@ ttb-paths.h: Makefile
 	echo '#endif /* TTB_PATHS_H */' \
 	) >$@
 
+DISTCLEANFILES = ttb-paths.h
+

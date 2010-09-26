@@ -17,6 +17,7 @@ AC_INIT([ttb], [0.1], [mariusz.adamski@gmail.com])
 AM_INIT_AUTOMAKE([gnu dist-bzip2])
 AC_CONFIG_SRCDIR([src/main.c])
 AC_CONFIG_HEADERS([config.h])
+AC_CONFIG_MACRO_DIR([m4])
 AM_GNU_GETTEXT_VERSION(0.17)
 AM_GNU_GETTEXT([external])
 IT_PROG_INTLTOOL

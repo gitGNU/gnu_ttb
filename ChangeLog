@@ -1,4 +1,8 @@
 2010-09-26 Mariusz Adamski <mariusz.adamski@gmail.com>
+	* configure.ac: Minor fixes to the build system.
+	* Makefile.am, src/Makefile.am: Ditto.
+
+2010-09-26 Mariusz Adamski <mariusz.adamski@gmail.com>
 	* src/ui-gtk.c: Added close button.
 
 2010-09-24 Mariusz Adamski <mariusz.adamski@gmail.com>
