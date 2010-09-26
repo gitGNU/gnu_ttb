@@ -1,3 +1,6 @@
+2010-09-26 Mariusz Adamski <mariusz.adamski@gmail.com>
+	* src/ui-gtk.c: Added close button.
+
 2010-09-24 Mariusz Adamski <mariusz.adamski@gmail.com>
 	* configure.ac: Version bump.
 	* NEWS, README: Ditto.

@@ -34,8 +34,6 @@
 
 G_DEFINE_TYPE(UIGtk, ui_gtk, TTB_TYPE_UI)
 
-#define PREFS_PATH bindir "ttb-prefs"
-
 struct _UIGtkPrivate
 {
 	GtkWidget *window;
@@ -76,14 +74,14 @@ cb_button_clicked(GtkWidget *widget, gpointer data)
 static void
 cb_prefs_button_clicked(GtkWidget *widget, gpointer data)
 {
-	UIGtk        *ui   = UI_GTK(data);
-	UIGtkPrivate *priv = ui->priv;
+	UIGtk        *self = UI_GTK(data);
+	UIGtkPrivate *priv = self->priv;
 	GtkWindow    *prefs_window;
 
 	/* TODO: This should go to TTBUI */
 	if (!priv->prefs) {
 		priv->prefs = TTB_PREFS(ttb_app_get_prefs(ttb_app_get()));
-		ttb_prefs_connect_ui(priv->prefs, TTB_UI(ui));
+		ttb_prefs_connect_ui(priv->prefs, TTB_UI(self));
 		gchar *dirname = g_build_filename(g_get_home_dir(),
 	                                      ".local/share/applications/ttb",
 	                                          NULL);
@@ -91,8 +89,7 @@ cb_prefs_button_clicked(GtkWidget *widget, gpointer data)
 		g_free(dirname);
 	}
 	prefs_window = GTK_WINDOW(ttb_prefs_get_widget(priv->prefs));
-	gtk_window_set_transient_for(prefs_window,
-	                             GTK_WINDOW(ui->priv->window));
+	gtk_window_set_transient_for(prefs_window, GTK_WINDOW(priv->window));
 	gtk_widget_show(GTK_WIDGET(prefs_window));
 }
 
@@ -104,11 +101,15 @@ ui_gtk_rebuild(TTBUI *self)
 	UIGtkPrivate *priv = UI_GTK(self)->priv;
 	TTBUIClass *klass = TTB_UI_CLASS(ui_gtk_parent_class);
 
+	GtkWidget *button, *sep, *hbox, *tbox;
+	TTBBase *base;
+	GSList  *list;
+
 	klass->rebuild(self);
 
 	if (priv->window) {
-		gtk_widget_hide(priv->window);
 		GtkWidget *child = gtk_bin_get_child(GTK_BIN(priv->window));
+		gtk_widget_hide(priv->window);
 		gtk_widget_destroy(child);
 	} else {
 		priv->window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
@@ -119,16 +120,29 @@ ui_gtk_rebuild(TTBUI *self)
 		gtk_window_set_title(GTK_WINDOW(priv->window), "TTB");
 	}
 
-	GtkWidget *hbox = gtk_hbox_new(FALSE, 1);
-	GtkWidget *tbox = gtk_hbox_new(TRUE, 1);
+	hbox = gtk_hbox_new(FALSE, 1);
+	tbox = gtk_hbox_new(TRUE, 1);
 	gtk_container_add(GTK_CONTAINER(priv->window), hbox);
 
-	TTBBase *base = ttb_ui_get_base(TTB_UI(self));
-	GSList *list = TTB_BASE_GET_CLASS(base)->get_entries_list(base);
+	button = gtk_button_new();
+	gtk_button_set_image(GTK_BUTTON(button),
+	                     gtk_image_new_from_stock(GTK_STOCK_CLOSE,
+	                                              GTK_ICON_SIZE_BUTTON));
+	gtk_widget_set_tooltip_text(button, _("Close"));
+	g_signal_connect(button, "clicked",
+	                 G_CALLBACK(gtk_main_quit), self);
+	gtk_box_pack_start(GTK_BOX(hbox), button, TRUE, FALSE, 0);
+	sep = gtk_vseparator_new();
+	gtk_box_pack_start(GTK_BOX(hbox), sep, TRUE, FALSE, 0);
+
+	base = ttb_ui_get_base(TTB_UI(self));
+	list = TTB_BASE_GET_CLASS(base)->get_entries_list(base);
+	sep = (list != NULL)? gtk_vseparator_new() : NULL;
+
 	while (list) {
+		GtkWidget   *ic;
 		DesktopItem *item = list->data;
-		GtkWidget *button = gtk_button_new_with_label(item->name);
-		GtkWidget *ic;
+		button = gtk_button_new_with_label(item->name);
 		if ((item->icon) && (strlen(item->icon) != 0)) {
 			ic = gtk_image_new_from_icon_name(item->icon,
 		                                 GTK_ICON_SIZE_LARGE_TOOLBAR);
@@ -145,9 +159,9 @@ ui_gtk_rebuild(TTBUI *self)
 		list = g_slist_next(list);
 	}
 	gtk_box_pack_start(GTK_BOX(hbox), tbox, TRUE, FALSE, 0);
-	GtkWidget *sep = gtk_vseparator_new();
-	gtk_box_pack_start(GTK_BOX(hbox), sep, TRUE, FALSE, 0);
-	GtkWidget *button = gtk_button_new();
+	if (sep)
+		gtk_box_pack_start(GTK_BOX(hbox), sep, TRUE, FALSE, 0);
+	button = gtk_button_new();
 	gtk_button_set_image(GTK_BUTTON(button),
 	                     gtk_image_new_from_stock(GTK_STOCK_PREFERENCES,
 	                                              GTK_ICON_SIZE_BUTTON));
@@ -179,7 +193,7 @@ static void
 ui_gtk_class_init(UIGtkClass *klass)
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS(klass);
-	TTBUIClass *ui_class = TTB_UI_CLASS(klass); 
+	TTBUIClass   *ui_class      = TTB_UI_CLASS(klass);
 	
 	gobject_class->dispose  = ui_gtk_dispose;
 	gobject_class->finalize = ui_gtk_finalize;

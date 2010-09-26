@@ -1,3 +1,7 @@
+2010-09-26  Mariusz Adamski  <mariusz.adamski@gmail.com>
+	* pl.po: Updated.
+	* eo.po: Ditto.
+
 2010-09-22  Mariusz Adamski  <mariusz.adamski@gmail.com>
 	* POTFILES.in: Added src/ui-gtk.c
 	* pl.po: Updated.
